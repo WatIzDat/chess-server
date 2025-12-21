@@ -1,0 +1,6 @@
+@ChessServer.Api_HostAddress = http://localhost:5075
+
+GET {{ChessServer.Api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
