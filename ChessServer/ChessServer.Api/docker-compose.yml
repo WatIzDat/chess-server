@@ -1,0 +1,7 @@
+﻿services:
+  api:
+    build:
+      dockerfile: Dockerfile
+      target: final
+    ports:
+      - "5075:8080"

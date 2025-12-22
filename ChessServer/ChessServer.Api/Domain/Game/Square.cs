@@ -9,13 +9,13 @@ public record Square
     
     public Square(char file, int rank)
     {
-        if (rank is < 0 or > 7)
+        if (rank is < 1 or > 8)
         {
             throw new ArgumentOutOfRangeException(nameof(rank));
         }
         
         File = CharFileToInt(file);
-        Rank = rank;
+        Rank = rank - 1;
     }
 
     private static int CharFileToInt(char file)
@@ -29,6 +29,6 @@ public record Square
 
     public override string ToString()
     {
-        return Files[File].ToString() + Rank;
+        return Files[File].ToString() + (Rank + 1);
     }
 }
