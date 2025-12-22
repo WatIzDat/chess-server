@@ -1,9 +1,7 @@
 ﻿using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
-using System.Text.Json.Serialization.Metadata;
 using ChessServer.ConsoleFrontend.Models;
-using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.AspNetCore.SignalR.Client;
 
 JsonSerializerOptions jsonOptions = new()
@@ -14,6 +12,8 @@ JsonSerializerOptions jsonOptions = new()
 using HttpClient client = new();
 
 AccessTokenResponse accessTokenResponse;
+
+DateTime tokenExpirationDate;
 
 while (true)
 {
@@ -43,13 +43,13 @@ while (true)
         await client.PostAsync("http://localhost:5075/register", content);
     }
     
-    Console.WriteLine(content);
-    
     HttpResponseMessage response = await client.PostAsync("http://localhost:5075/login", content);
     
     response.EnsureSuccessStatusCode();
     
     accessTokenResponse = await response.Content.ReadFromJsonAsync<AccessTokenResponse>(jsonOptions) ?? throw new Exception("Login failed");
+
+    tokenExpirationDate = DateTime.UtcNow.AddSeconds(accessTokenResponse.ExpiresIn);
 
     break;
 }
@@ -76,9 +76,7 @@ while (true)
 
 async Task<string?> GetAccessToken()
 {
-    JsonWebToken jwt = new JsonWebTokenHandler().ReadJsonWebToken(accessTokenResponse.AccessToken);
-
-    if (DateTime.Now <= jwt.ValidTo.Subtract(TimeSpan.FromMinutes(1))) return accessTokenResponse.AccessToken;
+    if (DateTime.UtcNow <= tokenExpirationDate.Subtract(TimeSpan.FromMinutes(1))) return accessTokenResponse.AccessToken;
     
     HttpResponseMessage response = await client.PostAsJsonAsync("http://localhost:5075/refresh", accessTokenResponse.RefreshToken);
         
@@ -86,7 +84,7 @@ async Task<string?> GetAccessToken()
         
     accessTokenResponse = await response.Content.ReadFromJsonAsync<AccessTokenResponse>(jsonOptions) ?? throw new Exception("Refresh failed");
     
-    Console.WriteLine($"AccessToken: {accessTokenResponse.AccessToken}");
+    tokenExpirationDate = DateTime.UtcNow.AddSeconds(accessTokenResponse.ExpiresIn);
 
     return accessTokenResponse.AccessToken;
 }
