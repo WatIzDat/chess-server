@@ -1,4 +1,8 @@
+using ChessServer.Api.Database;
+using ChessServer.Api.Extensions;
 using ChessServer.Api.Hubs;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -7,12 +11,24 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddOpenApi();
 builder.Services.AddSignalR();
 
+builder.Services.AddAuthorization();
+builder.Services.AddAuthentication().AddBearerToken(IdentityConstants.BearerScheme);
+
+builder.Services.AddIdentityCore<ApplicationUser>()
+    .AddEntityFrameworkStores<ApplicationDbContext>()
+    .AddApiEndpoints();
+
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
+    options.UseNpgsql(builder.Configuration.GetConnectionString("Database")));
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
+    
+    app.ApplyMigrations();
 }
 
 app.UseHttpsRedirection();
@@ -37,6 +53,8 @@ app.MapGet("/weatherforecast", () =>
 .WithName("GetWeatherForecast");
 
 app.MapHub<GameHub>("/gameHub");
+
+app.MapIdentityApi<ApplicationUser>();
 
 app.Run();
 
