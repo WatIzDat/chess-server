@@ -16,7 +16,16 @@ public class GameHub(ApplicationDbContext dbContext) : Hub
     {
         Move newMove = Move.Create(move);
         
-        await Clients.All.SendAsync("ReceiveMove", newMove.Serialize());
+        List<MatchConnection> connections = await dbContext.MatchConnections.Where(connection => connection.IsActive && connection.UserId == Context.UserIdentifier).ToListAsync();
+        
+        await Clients.Groups(connections.Select(c => c.MatchId.ToString()))
+            .SendAsync("ReceiveMove",
+                newMove.Serialize());
+    }
+
+    public async Task JoinMatch(Guid matchId)
+    {
+        await Groups.AddToGroupAsync(Context.ConnectionId, matchId.ToString());
     }
 
     public override async Task OnDisconnectedAsync(Exception? exception)

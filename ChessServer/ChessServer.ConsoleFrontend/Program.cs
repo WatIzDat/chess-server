@@ -56,6 +56,18 @@ while (true)
 
 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessTokenResponse.AccessToken);
 
+HubConnection gameHubConnection = new HubConnectionBuilder()
+    .WithUrl("http://localhost:5075/gameHub", options =>
+    {
+        options.AccessTokenProvider = GetAccessToken;
+    })
+    .WithAutomaticReconnect()
+    .Build();
+
+gameHubConnection.On<string>("ReceiveMove", move => Console.WriteLine($"Received move: {move}"));
+
+await gameHubConnection.StartAsync();
+
 while (true)
 {
     Console.Write("Choose action (create/join) match: ");
@@ -83,6 +95,8 @@ while (true)
             
             response.EnsureSuccessStatusCode();
 
+            await gameHubConnection.InvokeAsync("JoinMatch", matchId);
+
             break;
         }
     }
@@ -91,22 +105,18 @@ while (true)
         HttpResponseMessage response = await client.PostAsync("http://localhost:5075/match", null);
         
         response.EnsureSuccessStatusCode();
+        
+        string stringMatchId = (await response.Content.ReadAsStringAsync())[1..^1];
+        
+        Console.WriteLine($"Match id: {stringMatchId}");
+        
+        Guid matchId = Guid.Parse(stringMatchId);
+        
+        await gameHubConnection.InvokeAsync("JoinMatch", matchId);
     }
 
     break;
 }
-
-HubConnection gameHubConnection = new HubConnectionBuilder()
-    .WithUrl("http://localhost:5075/gameHub", options =>
-    {
-        options.AccessTokenProvider = GetAccessToken;
-    })
-    .WithAutomaticReconnect()
-    .Build();
-
-gameHubConnection.On<string>("ReceiveMove", move => Console.WriteLine($"Received move: {move}"));
-
-await gameHubConnection.StartAsync();
 
 while (true)
 {
