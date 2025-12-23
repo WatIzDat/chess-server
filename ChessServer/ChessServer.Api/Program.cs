@@ -62,10 +62,31 @@ app.MapPost("/match", async (ClaimsPrincipal claims, ApplicationDbContext dbCont
 
     Match match = new(user);
     
-    await dbContext.Matches.AddAsync(match);
+    dbContext.Matches.Add(match);
     await dbContext.SaveChangesAsync();
 
     return match.Id;
+})
+.RequireAuthorization();
+
+app.MapPatch("/match/{matchId:guid}", async (ClaimsPrincipal claims, ApplicationDbContext dbContext, Guid matchId) =>
+{
+    string userId = claims.Claims.First(c => c.Type == ClaimTypes.NameIdentifier).Value;
+
+    ApplicationUser user = (await dbContext.Users.FindAsync(userId))!;
+
+    Match? match = await dbContext.Matches.Include(match => match.ConnectedUsers).FirstOrDefaultAsync(match => match.Id == matchId);
+    
+    if (match == null)
+    {
+        return Results.NotFound();
+    }
+
+    match.ConnectedUsers.Add(user);
+
+    await dbContext.SaveChangesAsync();
+
+    return Results.Ok(match.Id);
 })
 .RequireAuthorization();
 
