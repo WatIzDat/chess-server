@@ -1,4 +1,6 @@
+using System.Security.Claims;
 using ChessServer.Api.Database;
+using ChessServer.Api.Domain;
 using ChessServer.Api.Extensions;
 using ChessServer.Api.Hubs;
 using Microsoft.AspNetCore.Identity;
@@ -51,6 +53,21 @@ app.MapGet("/weatherforecast", () =>
     return forecast;
 })
 .WithName("GetWeatherForecast");
+
+app.MapPost("/match", async (ClaimsPrincipal claims, ApplicationDbContext dbContext) =>
+{
+    string userId = claims.Claims.First(c => c.Type == ClaimTypes.NameIdentifier).Value;
+
+    ApplicationUser user = (await dbContext.Users.FindAsync(userId))!;
+
+    Match match = new(user);
+    
+    await dbContext.Matches.AddAsync(match);
+    await dbContext.SaveChangesAsync();
+
+    return match.Id;
+})
+.RequireAuthorization();
 
 app.MapHub<GameHub>("/gameHub");
 

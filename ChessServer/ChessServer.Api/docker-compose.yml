@@ -5,6 +5,8 @@
       target: final
     ports:
       - "5075:8080"
+    depends_on:
+      - database
   database:
     image: "postgres:latest"
     ports:
@@ -15,3 +17,14 @@
       POSTGRES_DB: default_database
     volumes:
       - ${PWD}/db-data/:/var/lib/postgresql/data/
+  pgadmin:
+    image: dpage/pgadmin4
+    ports:
+      - "15433:80"
+    environment:
+      PGADMIN_DEFAULT_EMAIL: test@test.com
+      PGADMIN_DEFAULT_PASSWORD: postgres
+    depends_on:
+      - database
+    volumes:
+      - ${PWD}/pgadmin-data/:/var/lib/pgadmin/
