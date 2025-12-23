@@ -50,6 +50,48 @@ while (true)
     accessTokenResponse = await response.Content.ReadFromJsonAsync<AccessTokenResponse>(jsonOptions) ?? throw new Exception("Login failed");
 
     tokenExpirationDate = DateTime.UtcNow.AddSeconds(accessTokenResponse.ExpiresIn);
+    
+    break;
+}
+
+client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessTokenResponse.AccessToken);
+
+while (true)
+{
+    Console.Write("Choose action (create/join) match: ");
+    string? matchAction = Console.ReadLine();
+
+    if (matchAction == null || (matchAction != "create" && matchAction != "join"))
+    {
+        continue;
+    }
+
+    if (matchAction.Equals("join", StringComparison.InvariantCultureIgnoreCase))
+    {
+        while (true)
+        {
+            Console.Write("Match id: ");
+        
+            bool success = Guid.TryParse(Console.ReadLine(), out Guid matchId);
+
+            if (!success)
+            {
+                continue;
+            }
+            
+            HttpResponseMessage response = await client.PatchAsync("http://localhost:5075/match/" + matchId, null);
+            
+            response.EnsureSuccessStatusCode();
+
+            break;
+        }
+    }
+    else
+    {
+        HttpResponseMessage response = await client.PostAsync("http://localhost:5075/match", null);
+        
+        response.EnsureSuccessStatusCode();
+    }
 
     break;
 }
