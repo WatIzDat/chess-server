@@ -1,6 +1,6 @@
 using System.Security.Claims;
 using ChessServer.Api.Database;
-using ChessServer.Api.Domain;
+using ChessServer.Api.Domain.Match;
 using ChessServer.Api.Extensions;
 using ChessServer.Api.Hubs;
 using Microsoft.AspNetCore.Identity;

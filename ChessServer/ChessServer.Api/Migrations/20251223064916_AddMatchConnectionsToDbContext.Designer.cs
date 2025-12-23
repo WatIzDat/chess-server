@@ -3,6 +3,7 @@ using System;
 using ChessServer.Api.Database;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace ChessServer.Api.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251223064916_AddMatchConnectionsToDbContext")]
+    partial class AddMatchConnectionsToDbContext
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -100,20 +103,24 @@ namespace ChessServer.Api.Migrations
 
             modelBuilder.Entity("ChessServer.Api.Domain.Match.MatchConnection", b =>
                 {
+                    b.Property<string>("ConnectedUsersId")
+                        .HasColumnType("text");
+
                     b.Property<Guid>("MatchId")
                         .HasColumnType("uuid");
-
-                    b.Property<string>("UserId")
-                        .HasColumnType("text");
 
                     b.Property<bool>("IsActive")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("boolean")
                         .HasDefaultValue(true);
 
-                    b.HasKey("MatchId", "UserId");
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("text");
 
-                    b.HasIndex("UserId");
+                    b.HasKey("ConnectedUsersId", "MatchId");
+
+                    b.HasIndex("MatchId");
 
                     b.ToTable("MatchConnections", "public");
                 });
@@ -252,15 +259,15 @@ namespace ChessServer.Api.Migrations
 
             modelBuilder.Entity("ChessServer.Api.Domain.Match.MatchConnection", b =>
                 {
-                    b.HasOne("ChessServer.Api.Domain.Match.Match", null)
-                        .WithMany("Connections")
-                        .HasForeignKey("MatchId")
+                    b.HasOne("ChessServer.Api.Database.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("ConnectedUsersId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("ChessServer.Api.Database.ApplicationUser", null)
-                        .WithMany()
-                        .HasForeignKey("UserId")
+                    b.HasOne("ChessServer.Api.Domain.Match.Match", null)
+                        .WithMany("Connections")
+                        .HasForeignKey("MatchId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });

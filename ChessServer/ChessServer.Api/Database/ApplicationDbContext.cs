@@ -1,4 +1,5 @@
 ﻿using ChessServer.Api.Domain;
+using ChessServer.Api.Domain.Match;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
@@ -12,6 +13,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     }
     
     public DbSet<Match> Matches { get; set; }
+    public DbSet<MatchConnection> MatchConnections { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -19,6 +21,13 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
         
         builder.HasDefaultSchema("public");
         
-        builder.Entity<Match>().ToTable("matches").HasMany(e => e.ConnectedUsers).WithMany();
+        builder.Entity<Match>()
+            .ToTable("matches")
+            .HasMany(e => e.ConnectedUsers)
+            .WithMany()
+            .UsingEntity<MatchConnection>(
+                r => r.HasOne<ApplicationUser>().WithMany().HasForeignKey(e => e.UserId),
+                l => l.HasOne<Match>().WithMany(e => e.Connections).HasForeignKey(e => e.MatchId),
+                j => j.Property(e => e.IsActive).HasDefaultValue(true));
     }
 }
