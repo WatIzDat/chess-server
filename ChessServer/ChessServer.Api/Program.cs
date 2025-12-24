@@ -81,7 +81,7 @@ app.MapGet("/board/{fen}", (string fen) =>
 
     Console.WriteLine("Halfmove clock: " + board.HalfmoveClock);
     
-    return Results.NoContent();
+    return Fen.CreateFenFromBoard(board);
 });
 
 app.MapPost("/match", async (ClaimsPrincipal claims, ApplicationDbContext dbContext) =>

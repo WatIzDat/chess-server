@@ -25,6 +25,22 @@ public static class Fen
             _ => throw new ArgumentException("Piece was not valid", nameof(piece))
         };
     }
+
+    private static char GetCharOfPiece(Piece.Piece piece)
+    {
+        char character = piece switch
+        {
+            Pawn => 'p',
+            Knight => 'n',
+            Bishop => 'b',
+            Rook => 'r',
+            Queen => 'q',
+            King => 'k',
+            _ => throw new ArgumentException("Piece was not valid", nameof(piece))
+        };
+        
+        return piece.Color == PlayerColor.White ? char.ToUpperInvariant(character) : character;
+    }
     
     public static Board CreateBoardFromFen(string fen)
     {
@@ -140,5 +156,92 @@ public static class Fen
         }
 
         return board;
+    }
+
+    public static string CreateFenFromBoard(Board board)
+    {
+        string fen = "";
+
+        var pieces = board.Pieces.OrderBy(kvp => kvp.Key, new SquareFenComparer());
+
+        int file = -1;
+        int rank = 7;
+
+        foreach ((Square square, Piece.Piece piece) in pieces)
+        {
+            Console.WriteLine($"{square.File} {square.Rank}");
+            if (square.Rank != rank)
+            {
+                if (file < 7 || rank - square.Rank > 1)
+                {
+                    if (file < 7)
+                    {
+                        fen += $"{7 - file}";
+                    }
+
+                    fen += "/";
+                    
+                    for (int i = 0; i < rank - square.Rank - 1; i++)
+                    {
+                        fen += "8/";
+                    }
+                    
+                    if (square.File > 0)
+                    {
+                        fen += square.File;
+                    }
+                    
+                    file = square.File;
+                }
+                else
+                {
+                    fen += "/";
+                    
+                    if (square.File > 0)
+                    {
+                        fen += square.File;
+                    }
+                }
+            }
+            
+            rank = square.Rank;
+            
+            if (square.File - file > 1)
+            {
+                fen += square.File - file - 1;
+            }
+            
+            file = square.File;
+
+            fen += GetCharOfPiece(piece);
+        }
+
+        if (file < 7)
+        {
+            fen += 7 - file;
+        }
+
+        if (rank > 0)
+        {
+            for (int i = 0; i < rank; i++)
+            {
+                fen += "/8";
+            }
+        }
+
+        return fen;
+    }
+
+    private class SquareFenComparer : IComparer<Square>
+    {
+        public int Compare(Square? x, Square? y)
+        {
+            if (ReferenceEquals(x, y)) return 0;
+            if (y is null) return 1;
+            if (x is null) return -1;
+            var rankComparison = y.Rank.CompareTo(x.Rank);
+            if (rankComparison != 0) return rankComparison;
+            return x.File.CompareTo(y.File);
+        }
     }
 }

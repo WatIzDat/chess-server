@@ -47,3 +47,16 @@ public record Square
         return Files[File].ToString() + (Rank + 1);
     }
 }
+
+public class SquareComparer : IComparer<Square>
+{
+    public int Compare(Square? x, Square? y)
+    {
+        if (ReferenceEquals(x, y)) return 0;
+        if (y is null) return 1;
+        if (x is null) return -1;
+        int rankComparison = x.Rank.CompareTo(y.Rank);
+        if (rankComparison != 0) return rankComparison;
+        return x.File.CompareTo(y.File);
+    }
+}
