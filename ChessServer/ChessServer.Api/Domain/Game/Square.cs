@@ -6,16 +6,31 @@ public record Square
     public int Rank { get; private set; }
 
     private static readonly char[] Files = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
-    
-    public Square(char file, int rank)
+
+    public Square(int file, int rank, bool oneIndexed = false)
     {
-        if (rank is < 1 or > 8)
+        if (oneIndexed)
+        {
+            rank -= 1;
+        }
+
+        if (file is < 0 or > 7)
+        {
+            throw new ArgumentOutOfRangeException(nameof(file));
+        }
+        
+        if (rank is < 0 or > 7)
         {
             throw new ArgumentOutOfRangeException(nameof(rank));
         }
         
-        File = CharFileToInt(file);
-        Rank = rank - 1;
+        File = file;
+        Rank = rank;
+    }
+    
+    public Square(char file, int rank, bool oneIndexed = false) 
+        : this(CharFileToInt(file), rank, oneIndexed)
+    {
     }
 
     private static int CharFileToInt(char file)

@@ -12,8 +12,8 @@ public class Move(Square fromSquare, Square toSquare)
             throw new ArgumentException("Move must be 4 characters long");
         }
 
-        Square fromSquare = new(move[0], int.Parse(move[1].ToString()));
-        Square toSquare = new(move[2], int.Parse(move[3].ToString()));
+        Square fromSquare = new(move[0], int.Parse(move[1].ToString()), true);
+        Square toSquare = new(move[2], int.Parse(move[3].ToString()), true);
         
         return new Move(fromSquare, toSquare);
     }
