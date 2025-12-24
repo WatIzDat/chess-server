@@ -12,14 +12,24 @@ public class Board
         { PlayerColor.Black, new CastlingRights() }
     };
 
+    public Dictionary<PlayerColor, Square?> EnPassantTargetSquares { get; } = new()
+    {
+        { PlayerColor.White, null },
+        { PlayerColor.Black, null }
+    };
+    
+    public int HalfmoveClock { get; set; }
+
     public Board()
     {
     }
 
     public bool IsMoveLegal(Move move)
     {
-        List<Square> legalMoves = Pieces[move.FromSquare].GetLegalMoves(TODO);
+        //List<Square> legalMoves = Pieces[move.FromSquare].GetLegalMoves(TODO);
 
-        return legalMoves.Contains(move.ToSquare);
+        //return legalMoves.Contains(move.ToSquare);
+
+        return true;
     }
 }

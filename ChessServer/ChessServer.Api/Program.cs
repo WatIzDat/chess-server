@@ -1,8 +1,11 @@
 using System.Security.Claims;
+using System.Web;
 using ChessServer.Api.Database;
+using ChessServer.Api.Domain.Game;
 using ChessServer.Api.Domain.Match;
 using ChessServer.Api.Extensions;
 using ChessServer.Api.Hubs;
+using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -53,6 +56,33 @@ app.MapGet("/weatherforecast", () =>
     return forecast;
 })
 .WithName("GetWeatherForecast");
+
+app.MapGet("/board/{fen}", (string fen) =>
+{
+    fen = HttpUtility.UrlDecode(fen);
+    
+    Board board = Fen.CreateBoardFromFen(fen);
+
+    Console.WriteLine("Pieces:");
+    foreach (var piece in board.Pieces)
+    {
+        Console.WriteLine(piece + " " + piece.Value.Color);
+    }
+
+    Console.WriteLine("Player to Move: " + board.PlayerToMove);
+
+    Console.WriteLine("White kingside castling rights: " + board.CastlingRights[PlayerColor.White].Kingside);
+    Console.WriteLine("White queenside castling rights: " + board.CastlingRights[PlayerColor.White].Queenside);
+    Console.WriteLine("Black kingside castling rights: " + board.CastlingRights[PlayerColor.Black].Kingside);
+    Console.WriteLine("Black queenside castling rights: " + board.CastlingRights[PlayerColor.Black].Queenside);
+
+    Console.WriteLine("White en passant target square: " + board.EnPassantTargetSquares[PlayerColor.White]);
+    Console.WriteLine("Black en passant target square: " + board.EnPassantTargetSquares[PlayerColor.Black]);
+
+    Console.WriteLine("Halfmove clock: " + board.HalfmoveClock);
+    
+    return Results.NoContent();
+});
 
 app.MapPost("/match", async (ClaimsPrincipal claims, ApplicationDbContext dbContext) =>
 {

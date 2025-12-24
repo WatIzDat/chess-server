@@ -33,7 +33,7 @@ public record Square
     {
     }
 
-    private static int CharFileToInt(char file)
+    public static int CharFileToInt(char file)
     {
         file = char.ToLowerInvariant(file);
         

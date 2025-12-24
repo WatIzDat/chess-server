@@ -106,8 +106,39 @@ public static class Fen
                     case 'q':
                         board.CastlingRights[PlayerColor.Black].Queenside = true;
                         break;
+                    default:
+                        throw new ArgumentException("Invalid castling rights", nameof(fen));
                 }
             }
         }
+
+        if (epTargetSquare != "-")
+        {
+            int epTargetFile = Square.CharFileToInt(epTargetSquare[0]);
+            int epTargetRank;
+
+            switch (epTargetSquare[1])
+            {
+                case '3':
+                    epTargetRank = 2;
+                
+                    board.EnPassantTargetSquares[PlayerColor.White] = new Square(epTargetFile, epTargetRank);
+                    break;
+                case '6':
+                    epTargetRank = 5;
+                
+                    board.EnPassantTargetSquares[PlayerColor.Black] = new Square(epTargetFile, epTargetRank);
+                    break;
+                default:
+                    throw new ArgumentException("Invalid en passant target rank", nameof(fen));
+            }
+        }
+
+        if (halfmoveClock != "0")
+        {
+            board.HalfmoveClock = int.Parse(halfmoveClock);
+        }
+
+        return board;
     }
 }
