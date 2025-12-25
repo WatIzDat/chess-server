@@ -228,6 +228,34 @@ public static class Fen
                 fen += "/8";
             }
         }
+        
+        fen += board.PlayerToMove == PlayerColor.White ? " w " : " b ";
+
+        if (!board.CastlingRights[PlayerColor.White].Kingside &&
+            !board.CastlingRights[PlayerColor.White].Queenside &&
+            !board.CastlingRights[PlayerColor.Black].Kingside &&
+            !board.CastlingRights[PlayerColor.Black].Queenside)
+        {
+            fen += "-";
+        }
+        else
+        {
+            if (board.CastlingRights[PlayerColor.White].Kingside) fen += "K";
+            if (board.CastlingRights[PlayerColor.White].Queenside) fen += "Q";
+            if (board.CastlingRights[PlayerColor.Black].Kingside) fen += "k";
+            if (board.CastlingRights[PlayerColor.Black].Queenside) fen += "q";
+        }
+
+        fen += " ";
+        
+        if (board.EnPassantTargetSquares[PlayerColor.White] != null)
+            fen += board.EnPassantTargetSquares[PlayerColor.White]!.ToString();
+        else if (board.EnPassantTargetSquares[PlayerColor.Black] != null)
+            fen += board.EnPassantTargetSquares[PlayerColor.Black]!.ToString();
+        else
+            fen += "-";
+
+        fen += " " + board.HalfmoveClock;
 
         return fen;
     }
