@@ -84,6 +84,22 @@ app.MapGet("/board/{fen}", (string fen) =>
     return Fen.CreateFenFromBoard(board);
 });
 
+app.MapGet("/squares/{fen}/{square}", (string fen, string square) =>
+{
+    fen = HttpUtility.UrlDecode(fen);
+
+    Board board = Fen.CreateBoardFromFen(fen);
+
+    Square fromSquare = new(square[0], int.Parse(square[1].ToString()), true);
+
+    foreach (Square legalSquare in board.Pieces[fromSquare].GetLegalSquares(fromSquare, board))
+    {
+        Console.WriteLine(legalSquare);
+    }
+
+    return Results.NoContent();
+});
+
 app.MapPost("/match", async (ClaimsPrincipal claims, ApplicationDbContext dbContext) =>
 {
     string userId = claims.Claims.First(c => c.Type == ClaimTypes.NameIdentifier).Value;

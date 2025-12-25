@@ -5,18 +5,17 @@ public class Pawn(PlayerColor color) : Piece(color)
     public override List<Square> GetLegalSquares(Square fromSquare, Board board)
     {
         List<Square> legalSquares = [];
-        
-        Square upSquare = fromSquare.Up() ??
-                          throw new ArgumentException("Pawn cannot be on 8th rank", nameof(fromSquare));
+
+        Square upSquare = fromSquare.Up(perspective: Color) ?? throw new ArgumentException("Square invalid", nameof(fromSquare));
 
         if (!board.Pieces.ContainsKey(upSquare))
         {
             legalSquares.Add(upSquare);
         }
 
-        if ((upSquare.Rank == 1 && Color == PlayerColor.White) || (upSquare.Rank == 6 && Color == PlayerColor.Black))
+        if ((fromSquare.Rank == 1 && Color == PlayerColor.White) || (fromSquare.Rank == 6 && Color == PlayerColor.Black))
         {
-            Square doubleStepSquare = upSquare.Up() ?? throw new Exception("Double step square somehow doesn't exist");
+            Square doubleStepSquare = upSquare.Up(perspective: Color) ?? throw new Exception("Double step square somehow doesn't exist");
 
             if (!board.Pieces.ContainsKey(doubleStepSquare))
             {
