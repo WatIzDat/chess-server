@@ -24,6 +24,16 @@ public class Board
     {
     }
 
+    public bool CanOccupySquare(Square square)
+    {
+        return !Pieces.ContainsKey(square);
+    }
+
+    public bool CanCaptureAtSquare(Square square, PlayerColor color)
+    {
+        return !CanOccupySquare(square) && Pieces[square].Color != color;
+    }
+
     public bool IsMoveLegal(Move move)
     {
         //List<Square> legalMoves = Pieces[move.FromSquare].GetLegalMoves(TODO);

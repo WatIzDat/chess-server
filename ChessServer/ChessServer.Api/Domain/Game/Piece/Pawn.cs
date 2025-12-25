@@ -8,7 +8,7 @@ public class Pawn(PlayerColor color) : Piece(color)
 
         Square upSquare = fromSquare.Up(perspective: Color) ?? throw new ArgumentException("Square invalid", nameof(fromSquare));
 
-        if (!board.Pieces.ContainsKey(upSquare))
+        if (board.CanOccupySquare(upSquare))
         {
             legalSquares.Add(upSquare);
         }
@@ -17,7 +17,7 @@ public class Pawn(PlayerColor color) : Piece(color)
         {
             Square doubleStepSquare = upSquare.Up(perspective: Color) ?? throw new Exception("Double step square somehow doesn't exist");
 
-            if (!board.Pieces.ContainsKey(doubleStepSquare))
+            if (board.CanOccupySquare(doubleStepSquare))
             {
                 legalSquares.Add(doubleStepSquare);
             }
@@ -26,11 +26,11 @@ public class Pawn(PlayerColor color) : Piece(color)
         Square? leftCapture = upSquare.Left();
         Square? rightCapture = upSquare.Right();
 
-        if (leftCapture != null && (board.Pieces.ContainsKey(leftCapture) || board.EnPassantTargetSquares[Color.Opposite()] == leftCapture))
+        if (leftCapture != null && (board.CanCaptureAtSquare(leftCapture, Color) || board.EnPassantTargetSquares[Color.Opposite()] == leftCapture))
         {
             legalSquares.Add(leftCapture);
         }
-        if (rightCapture != null && (board.Pieces.ContainsKey(rightCapture) || board.EnPassantTargetSquares[Color.Opposite()] == rightCapture))
+        if (rightCapture != null && (board.CanCaptureAtSquare(rightCapture, Color) || board.EnPassantTargetSquares[Color.Opposite()] == rightCapture))
         {
             legalSquares.Add(rightCapture);
         }
