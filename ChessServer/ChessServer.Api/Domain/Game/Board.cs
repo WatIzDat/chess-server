@@ -29,6 +29,11 @@ public class Board
         return !Pieces.ContainsKey(square);
     }
 
+    public bool CanOccupySquareWithCaptures(Square square, PlayerColor color)
+    {
+        return CanOccupySquare(square) || CanCaptureAtSquare(square, color);
+    }
+
     public bool CanCaptureAtSquare(Square square, PlayerColor color)
     {
         return !CanOccupySquare(square) && Pieces[square].Color != color;
