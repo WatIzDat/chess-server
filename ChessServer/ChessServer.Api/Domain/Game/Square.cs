@@ -2,8 +2,8 @@
 
 public record Square
 {
-    public int File { get; private set; }
-    public int Rank { get; private set; }
+    public int File { get; }
+    public int Rank { get; }
 
     private static readonly char[] Files = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
 
@@ -31,6 +31,26 @@ public record Square
     public Square(char file, int rank, bool oneIndexed = false) 
         : this(CharFileToInt(file), rank, oneIndexed)
     {
+    }
+
+    public Square? Up(int amount = 1)
+    {
+        return Rank + amount is < 0 or > 7 ? null : new Square(File, Rank + amount);
+    }
+
+    public Square? Down(int amount = 1)
+    {
+        return Rank - amount is < 0 or > 7 ? null : new Square(File, Rank - amount);
+    }
+    
+    public Square? Right(int amount = 1)
+    {
+        return File + amount is < 0 or > 7 ? null : new Square(File + amount, Rank);
+    }
+
+    public Square? Left(int amount = 1)
+    {
+        return File - amount is < 0 or > 7 ? null : new Square(File - amount, Rank);
     }
 
     public static int CharFileToInt(char file)
