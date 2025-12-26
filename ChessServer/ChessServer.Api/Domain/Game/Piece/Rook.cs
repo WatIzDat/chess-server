@@ -18,7 +18,8 @@ public class Rook(PlayerColor color) : Piece(color)
             0,
             i => new Square(i,
                 fromSquare.Rank),
-            board);
+            board,
+            true);
         
         AddSlidingPieceAttackSquares(ref legalSquares,
             fromSquare.Rank + 1,
@@ -32,40 +33,10 @@ public class Rook(PlayerColor color) : Piece(color)
             0,
             i => new Square(fromSquare.File,
                 i),
-            board);
+            board,
+            true);
         
         return legalSquares;
     }
 
-    private void AddSlidingPieceAttackSquares(ref List<Square> squares, int from, int to, Func<int, Square> squareProvider, Board board)
-    {
-        if (to == 0)
-        {
-            for (int i = from; i >= to; i--)
-            {
-                if (!CreateAndAddSquare(ref squares, i))
-                    break;
-            }
-        }
-        else
-        {
-            for (int i = from; i <= to; i++)
-            {
-                if (!CreateAndAddSquare(ref squares, i))
-                    break;
-            }
-        }
-
-        return;
-
-        bool CreateAndAddSquare(ref List<Square> squares, int i)
-        {
-            Square square = squareProvider(i);
-
-            if (board.CanOccupySquareWithCaptures(square, Color))
-                squares.Add(square);
-
-            return board.CanOccupySquare(square);
-        }
-    }
 }
