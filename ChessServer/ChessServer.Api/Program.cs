@@ -108,7 +108,12 @@ app.MapGet("/move/{fen}/{move}", (string fen, string move) =>
 
     Move newMove = Move.Create(move);
 
-    return board.IsMoveLegal(newMove) ? "legal" : "illegal";
+    if (!board.IsMoveLegal(newMove))
+        return "illegal";
+
+    board.MakeMove(newMove);
+    
+    return Fen.CreateFenFromBoard(board);
 });
 
 app.MapPost("/match", async (ClaimsPrincipal claims, ApplicationDbContext dbContext) =>

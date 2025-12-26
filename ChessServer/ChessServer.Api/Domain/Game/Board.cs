@@ -69,8 +69,15 @@ public class Board
             
             return false;
         }
+        
+        Pieces = currentPiecesCopy;
 
         return true;
+    }
+
+    public void MakeMove(Move move)
+    {
+        Pieces = Pieces[move.FromSquare].MakeMove(Pieces, move);
     }
 
     private bool IsKingInCheckByPiece(Square testSquare, Piece.Piece testPiece)

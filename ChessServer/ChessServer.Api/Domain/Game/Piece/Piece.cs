@@ -8,6 +8,11 @@ public abstract class Piece(PlayerColor color)
 
    public virtual Dictionary<Square, Piece> MakeMove(Dictionary<Square, Piece> pieces, Move move)
    {
+      if (pieces[move.FromSquare].GetType() != GetType())
+      {
+         throw new ArgumentException("Incorrect piece", nameof(move));
+      }
+      
       pieces[move.ToSquare] = pieces[move.FromSquare];
          
       pieces.Remove(move.FromSquare);
