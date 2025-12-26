@@ -6,7 +6,7 @@ public abstract class Piece(PlayerColor color)
 
    public abstract List<Square> GetLegalSquares(Square fromSquare, Board board);
 
-   public virtual Dictionary<Square, Piece> MakeMove(Dictionary<Square, Piece> pieces, Move move)
+   public virtual void MakeMove(Dictionary<Square, Piece> pieces, Move move)
    {
       if (pieces[move.FromSquare].GetType() != GetType())
       {
@@ -16,8 +16,18 @@ public abstract class Piece(PlayerColor color)
       pieces[move.ToSquare] = pieces[move.FromSquare];
          
       pieces.Remove(move.FromSquare);
+   }
 
-      return pieces;
+   public virtual void MakeMove(Board board, Move move)
+   {
+      if (!board.CanOccupySquare(move.ToSquare) || board.Pieces[move.FromSquare] is Pawn)
+         board.HalfmoveClock = 0;
+      else
+         board.HalfmoveClock++;
+
+      MakeMove(board.Pieces, move);
+      
+      board.PlayerToMove = board.PlayerToMove.Opposite();
    }
 
    protected void AddSlidingPieceAttackSquares(ref List<Square> squares, int from, int to, Func<int, Square?> squareProvider, Board board, bool iterateReverse = false)

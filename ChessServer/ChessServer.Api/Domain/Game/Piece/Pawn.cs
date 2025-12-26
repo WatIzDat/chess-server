@@ -38,11 +38,11 @@ public class Pawn(PlayerColor color) : Piece(color)
         return legalSquares;
     }
 
-    public override Dictionary<Square, Piece> MakeMove(Dictionary<Square, Piece> pieces, Move move)
+    public override void MakeMove(Dictionary<Square, Piece> pieces, Move move)
     {
         Pawn pawn = (Pawn)pieces[move.FromSquare];
         
-        pieces = base.MakeMove(pieces, move);
+        base.MakeMove(pieces, move);
 
         if ((pawn.Color == PlayerColor.White && move.ToSquare.Rank == 7) ||
             (pawn.Color == PlayerColor.Black && move.ToSquare.Rank == 1))
@@ -52,7 +52,5 @@ public class Pawn(PlayerColor color) : Piece(color)
             if (promotion != null)
                 pieces[move.ToSquare] = promotion;
         }
-        
-        return pieces;
     }
 }

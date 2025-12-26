@@ -4,7 +4,7 @@ namespace ChessServer.Api.Domain.Game;
 
 public class Board
 {
-    public Dictionary<Square, Piece.Piece> Pieces { get; private set; } = new();
+    public Dictionary<Square, Piece.Piece> Pieces { get; set; } = new();
     
     public PlayerColor PlayerToMove { get; set; }
 
@@ -41,9 +41,13 @@ public class Board
         return !CanOccupySquare(square) && Pieces[square].Color != color;
     }
 
-    public bool IsMoveLegal(Move move)
+    public bool IsMoveLegal(Move move, PlayerColor color)
     {
-        if (!Pieces.TryGetValue(move.FromSquare, out Piece.Piece? piece))
+        if (!Pieces.TryGetValue(move.FromSquare, out Piece.Piece? piece) ||
+            PlayerToMove != color)
+            return false;
+
+        if (piece.Color != color)
             return false;
         
         List<Square> legalSquares = piece.GetLegalSquares(move.FromSquare, this);
@@ -55,7 +59,7 @@ public class Board
 
         Dictionary<Square, Piece.Piece> currentPiecesCopy = Pieces.ToDictionary();
         
-        Pieces = piece.MakeMove(Pieces, move);
+        piece.MakeMove(Pieces, move);
         
         Square kingSquare = Pieces.First(kvp => kvp.Value is King && kvp.Value.Color == piece.Color).Key;
 
@@ -78,7 +82,7 @@ public class Board
 
     public void MakeMove(Move move)
     {
-        Pieces = Pieces[move.FromSquare].MakeMove(Pieces, move);
+        Pieces[move.FromSquare].MakeMove(this, move);
     }
 
     private bool IsKingInCheckByPiece(Square testSquare, Piece.Piece testPiece)

@@ -21,12 +21,13 @@ public class GameHub(ApplicationDbContext dbContext) : Hub
         
         //List<MatchConnection> connections = await dbContext.MatchConnections.Where(connection => connection.IsActive && connection.UserId == Context.UserIdentifier).ToListAsync();
         
-        if (connection == null)
+        if (connection == null ||
+            !connection.PlayerType.IsPlayer())
             return;
         
         Match match = await dbContext.Matches.Where(m => m.Id == matchId).FirstAsync();
 
-        if (!match.Board.IsMoveLegal(newMove))
+        if (!match.Board.IsMoveLegal(newMove, connection.PlayerType == MatchPlayerType.WhitePlayer ? PlayerColor.White : PlayerColor.Black))
             return;
         
         match.Board.MakeMove(newMove);

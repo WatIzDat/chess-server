@@ -6,3 +6,11 @@ public enum MatchPlayerType
     BlackPlayer,
     Spectator
 }
+
+public static class MatchPlayerTypeExtensions
+{
+    public static bool IsPlayer(this MatchPlayerType matchPlayerType)
+    {
+        return matchPlayerType is MatchPlayerType.WhitePlayer or MatchPlayerType.BlackPlayer;
+    }
+}
