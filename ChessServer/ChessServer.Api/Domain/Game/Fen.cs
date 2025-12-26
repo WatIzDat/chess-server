@@ -4,6 +4,8 @@ namespace ChessServer.Api.Domain.Game;
 
 public static class Fen
 {
+    public const string InitialPosition = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+    
     private static readonly char[] ValidPieces = ['p', 'n', 'b', 'r', 'q', 'k', 'P', 'N', 'B', 'R', 'Q', 'K'];
     
     private static Piece.Piece CreatePieceFromChar(char piece)

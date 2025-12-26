@@ -1,4 +1,5 @@
 ﻿using ChessServer.Api.Domain;
+using ChessServer.Api.Domain.Game;
 using ChessServer.Api.Domain.Match;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
@@ -34,6 +35,12 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
             .HasMany(e => e.Connections)
             .WithOne()
             .HasForeignKey(e => e.MatchId);
+
+        builder.Entity<Match>()
+            .Property(e => e.Board)
+            .HasConversion(
+                v => Fen.CreateFenFromBoard(v),
+                v => Fen.CreateBoardFromFen(v));
         
         builder.Entity<MatchConnection>()
             .HasKey(e => new { e.UserId, e.MatchId });
