@@ -6,6 +6,15 @@ public abstract class Piece(PlayerColor color)
 
    public abstract List<Square> GetLegalSquares(Square fromSquare, Board board);
 
+   public virtual Dictionary<Square, Piece> MakeMove(Dictionary<Square, Piece> pieces, Move move)
+   {
+      pieces[move.ToSquare] = pieces[move.FromSquare];
+         
+      pieces.Remove(move.FromSquare);
+
+      return pieces;
+   }
+
    protected void AddSlidingPieceAttackSquares(ref List<Square> squares, int from, int to, Func<int, Square?> squareProvider, Board board, bool iterateReverse = false)
    {
       if (iterateReverse)

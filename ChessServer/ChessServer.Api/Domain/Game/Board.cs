@@ -4,7 +4,7 @@ namespace ChessServer.Api.Domain.Game;
 
 public class Board
 {
-    public Dictionary<Square, Piece.Piece> Pieces { get; } = new();
+    public Dictionary<Square, Piece.Piece> Pieces { get; private set; } = new();
     
     public PlayerColor PlayerToMove { get; set; }
 
@@ -52,6 +52,10 @@ public class Board
             return false;
         }
 
+        Dictionary<Square, Piece.Piece> currentPiecesCopy = Pieces.ToDictionary();
+        
+        Pieces = piece.MakeMove(Pieces, move);
+        
         Square kingSquare = Pieces.First(kvp => kvp.Value is King && kvp.Value.Color == piece.Color).Key;
 
         if (IsKingInCheckByPiece(kingSquare, new Knight(piece.Color)) ||
@@ -59,8 +63,10 @@ public class Board
             IsKingInCheckByPiece(kingSquare, new Rook(piece.Color)) ||
             IsKingInCheckByPiece(kingSquare, new Queen(piece.Color)) ||
             IsKingInCheckByPiece(kingSquare, new King(piece.Color)) ||
-            IsKingInCheckByPiece(kingSquare, new Pawn(piece.Color.Opposite())))
+            IsKingInCheckByPiece(kingSquare, new Pawn(piece.Color)))
         {
+            Pieces = currentPiecesCopy;
+            
             return false;
         }
 
@@ -71,6 +77,9 @@ public class Board
     {
         List<Square> checkSquares = testPiece.GetLegalSquares(testSquare, this);
 
-        return checkSquares.Any(square => Pieces[square].GetType() == testPiece.GetType() && Pieces[square].Color != testPiece.Color);
+        return checkSquares.Any(
+            square => Pieces.ContainsKey(square) &&
+                      Pieces[square].GetType() == testPiece.GetType() &&
+                      Pieces[square].Color != testPiece.Color);
     }
 }

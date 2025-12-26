@@ -100,6 +100,17 @@ app.MapGet("/squares/{fen}/{square}", (string fen, string square) =>
     return Results.NoContent();
 });
 
+app.MapGet("/move/{fen}/{move}", (string fen, string move) =>
+{
+    fen = HttpUtility.UrlDecode(fen);
+
+    Board board = Fen.CreateBoardFromFen(fen);
+
+    Move newMove = Move.Create(move);
+
+    return board.IsMoveLegal(newMove) ? "legal" : "illegal";
+});
+
 app.MapPost("/match", async (ClaimsPrincipal claims, ApplicationDbContext dbContext) =>
 {
     string userId = claims.Claims.First(c => c.Type == ClaimTypes.NameIdentifier).Value;
