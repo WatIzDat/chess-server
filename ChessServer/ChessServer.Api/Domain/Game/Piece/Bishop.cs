@@ -6,25 +6,25 @@ public class Bishop(PlayerColor color) : Piece(color)
     {
         List<Square> legalSquares = [];
         
-        AddSlidingPieceAttackSquares(ref legalSquares,
+        AddSlidingPieceAttackSquares(legalSquares,
             1,
             7 - fromSquare.File,
             i => fromSquare.Up(i)?.Right(i),
             board);
         
-        AddSlidingPieceAttackSquares(ref legalSquares,
+        AddSlidingPieceAttackSquares(legalSquares,
             1,
             fromSquare.File,
             i => fromSquare.Up(i)?.Left(i),
             board);
         
-        AddSlidingPieceAttackSquares(ref legalSquares,
+        AddSlidingPieceAttackSquares(legalSquares,
             1,
             7 - fromSquare.File,
             i => fromSquare.Down(i)?.Right(i),
             board);
         
-        AddSlidingPieceAttackSquares(ref legalSquares,
+        AddSlidingPieceAttackSquares(legalSquares,
             1,
             fromSquare.File,
             i => fromSquare.Down(i)?.Left(i),

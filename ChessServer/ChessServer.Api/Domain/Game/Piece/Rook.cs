@@ -6,14 +6,14 @@ public class Rook(PlayerColor color) : Piece(color)
     {
         List<Square> legalSquares = [];
         
-        AddSlidingPieceAttackSquares(ref legalSquares,
+        AddSlidingPieceAttackSquares(legalSquares,
             fromSquare.File + 1,
             7,
             i => new Square(i,
                 fromSquare.Rank),
             board);
         
-        AddSlidingPieceAttackSquares(ref legalSquares,
+        AddSlidingPieceAttackSquares(legalSquares,
             fromSquare.File - 1,
             0,
             i => new Square(i,
@@ -21,14 +21,14 @@ public class Rook(PlayerColor color) : Piece(color)
             board,
             true);
         
-        AddSlidingPieceAttackSquares(ref legalSquares,
+        AddSlidingPieceAttackSquares(legalSquares,
             fromSquare.Rank + 1,
             7,
             i => new Square(fromSquare.File,
                 i),
             board);
         
-        AddSlidingPieceAttackSquares(ref legalSquares,
+        AddSlidingPieceAttackSquares(legalSquares,
             fromSquare.Rank - 1,
             0,
             i => new Square(fromSquare.File,

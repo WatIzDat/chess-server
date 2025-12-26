@@ -30,13 +30,13 @@ public abstract class Piece(PlayerColor color)
       board.PlayerToMove = board.PlayerToMove.Opposite();
    }
 
-   protected void AddSlidingPieceAttackSquares(ref List<Square> squares, int from, int to, Func<int, Square?> squareProvider, Board board, bool iterateReverse = false)
+   protected void AddSlidingPieceAttackSquares(List<Square> squares, int from, int to, Func<int, Square?> squareProvider, Board board, bool iterateReverse = false)
    {
       if (iterateReverse)
       {
          for (int i = from; i >= to; i--)
          {
-            if (!CreateAndAddSquare(ref squares, i))
+            if (!CreateAndAddSquare(i))
                break;
          }
       }
@@ -44,14 +44,14 @@ public abstract class Piece(PlayerColor color)
       {
          for (int i = from; i <= to; i++)
          {
-            if (!CreateAndAddSquare(ref squares, i))
+            if (!CreateAndAddSquare(i))
                break;
          }
       }
 
       return;
 
-      bool CreateAndAddSquare(ref List<Square> squares, int i)
+      bool CreateAndAddSquare(int i)
       {
          Square? square = squareProvider(i);
 
