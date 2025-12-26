@@ -5,7 +5,7 @@ public abstract class Piece(PlayerColor color)
    public PlayerColor Color { get; } = color;
 
    public abstract List<Square> GetLegalSquares(Square fromSquare, Board board);
-   
+
    protected void AddSlidingPieceAttackSquares(ref List<Square> squares, int from, int to, Func<int, Square?> squareProvider, Board board, bool iterateReverse = false)
    {
       if (iterateReverse)
