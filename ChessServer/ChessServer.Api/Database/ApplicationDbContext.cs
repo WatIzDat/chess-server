@@ -21,13 +21,30 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
         
         builder.HasDefaultSchema("public");
         
+        // builder.Entity<Match>()
+        //     .ToTable("matches")
+        //     .HasMany(e => e.ConnectedUsers)
+        //     .WithMany()
+        //     .UsingEntity<MatchConnection>(
+        //         r => r.HasOne<ApplicationUser>().WithMany().HasForeignKey(e => e.UserId),
+        //         l => l.HasOne<Match>().WithMany(e => e.Connections).HasForeignKey(e => e.MatchId),
+        //         j => j.Property(e => e.IsActive).HasDefaultValue(true));
+
         builder.Entity<Match>()
-            .ToTable("matches")
-            .HasMany(e => e.ConnectedUsers)
+            .HasMany(e => e.Connections)
+            .WithOne()
+            .HasForeignKey(e => e.MatchId);
+        
+        builder.Entity<MatchConnection>()
+            .HasKey(e => new { e.UserId, e.MatchId });
+
+        builder.Entity<MatchConnection>()
+            .HasOne(e => e.User)
             .WithMany()
-            .UsingEntity<MatchConnection>(
-                r => r.HasOne<ApplicationUser>().WithMany().HasForeignKey(e => e.UserId),
-                l => l.HasOne<Match>().WithMany(e => e.Connections).HasForeignKey(e => e.MatchId),
-                j => j.Property(e => e.IsActive).HasDefaultValue(true));
+            .HasForeignKey(e => e.UserId);
+        
+        builder.Entity<MatchConnection>()
+            .Property(e => e.IsActive)
+            .HasDefaultValue(true);
     }
 }

@@ -137,14 +137,14 @@ app.MapPatch("/match/{matchId:guid}", async (ClaimsPrincipal claims, Application
 
     ApplicationUser user = (await dbContext.Users.FindAsync(userId))!;
 
-    Match? match = await dbContext.Matches.Include(match => match.ConnectedUsers).FirstOrDefaultAsync(match => match.Id == matchId);
+    Match? match = await dbContext.Matches.Include(match => match.Connections).FirstOrDefaultAsync(match => match.Id == matchId);
     
     if (match == null)
     {
         return Results.NotFound();
     }
 
-    match.ConnectedUsers.Add(user);
+    match.Connections.Add(new MatchConnection(user, MatchPlayerType.BlackPlayer));
 
     await dbContext.SaveChangesAsync();
 
