@@ -64,9 +64,11 @@ HubConnection gameHubConnection = new HubConnectionBuilder()
     .WithAutomaticReconnect()
     .Build();
 
-gameHubConnection.On<string>("ReceiveMove", move => Console.WriteLine($"Received move: {move}"));
+gameHubConnection.On<string>("ReceiveMove", board=> Console.WriteLine($"Received move: {board}"));
 
 await gameHubConnection.StartAsync();
+
+Guid matchId;
 
 while (true)
 {
@@ -84,7 +86,7 @@ while (true)
         {
             Console.Write("Match id: ");
         
-            bool success = Guid.TryParse(Console.ReadLine(), out Guid matchId);
+            bool success = Guid.TryParse(Console.ReadLine(), out matchId);
 
             if (!success)
             {
@@ -110,7 +112,7 @@ while (true)
         
         Console.WriteLine($"Match id: {stringMatchId}");
         
-        Guid matchId = Guid.Parse(stringMatchId);
+        matchId = Guid.Parse(stringMatchId);
         
         await gameHubConnection.InvokeAsync("JoinMatch", matchId);
     }
@@ -123,7 +125,7 @@ while (true)
     Console.WriteLine("Move: ");
     string move = Console.ReadLine()!;
     
-    await gameHubConnection.InvokeAsync("SendMove", move);
+    await gameHubConnection.InvokeAsync("SendMove", move, matchId);
 }
 
 async Task<string?> GetAccessToken()

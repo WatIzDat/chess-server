@@ -12,15 +12,32 @@ public class GameHub(ApplicationDbContext dbContext) : Hub
 {
     private readonly ApplicationDbContext dbContext = dbContext;
 
-    public async Task SendMove(string move)
+    public async Task SendMove(string move, Guid matchId)
     {
         Move newMove = Move.Create(move);
+
+        MatchConnection? connection = await dbContext.MatchConnections.Where(c =>
+            c.MatchId == matchId && c.UserId == Context.UserIdentifier && c.IsActive).FirstOrDefaultAsync();
         
-        List<MatchConnection> connections = await dbContext.MatchConnections.Where(connection => connection.IsActive && connection.UserId == Context.UserIdentifier).ToListAsync();
+        //List<MatchConnection> connections = await dbContext.MatchConnections.Where(connection => connection.IsActive && connection.UserId == Context.UserIdentifier).ToListAsync();
         
-        await Clients.Groups(connections.Select(c => c.MatchId.ToString()))
+        if (connection == null)
+            return;
+        
+        Match match = await dbContext.Matches.Where(m => m.Id == matchId).FirstAsync();
+
+        if (!match.Board.IsMoveLegal(newMove))
+            return;
+        
+        match.Board.MakeMove(newMove);
+        
+        dbContext.Attach(match).Property(m => m.Board).IsModified = true;
+        
+        await dbContext.SaveChangesAsync();
+        
+        await Clients.Group(connection.MatchId.ToString())
             .SendAsync("ReceiveMove",
-                newMove.Serialize());
+                Fen.CreateFenFromBoard(match.Board));
     }
 
     public async Task JoinMatch(Guid matchId)

@@ -43,7 +43,8 @@ public class Board
 
     public bool IsMoveLegal(Move move)
     {
-        Piece.Piece piece = Pieces[move.FromSquare];
+        if (!Pieces.TryGetValue(move.FromSquare, out Piece.Piece? piece))
+            return false;
         
         List<Square> legalSquares = piece.GetLegalSquares(move.FromSquare, this);
 
