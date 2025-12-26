@@ -1,4 +1,6 @@
-﻿namespace ChessServer.Api.Domain.Game;
+﻿using ChessServer.Api.Domain.Game.Piece;
+
+namespace ChessServer.Api.Domain.Game;
 
 public class Board
 {
@@ -41,10 +43,34 @@ public class Board
 
     public bool IsMoveLegal(Move move)
     {
-        //List<Square> legalMoves = Pieces[move.FromSquare].GetLegalMoves(TODO);
+        Piece.Piece piece = Pieces[move.FromSquare];
+        
+        List<Square> legalSquares = piece.GetLegalSquares(move.FromSquare, this);
 
-        //return legalMoves.Contains(move.ToSquare);
+        if (!legalSquares.Contains(move.ToSquare))
+        {
+            return false;
+        }
+
+        Square kingSquare = Pieces.First(kvp => kvp.Value is King && kvp.Value.Color == piece.Color).Key;
+
+        if (IsKingInCheckByPiece(kingSquare, new Knight(piece.Color)) ||
+            IsKingInCheckByPiece(kingSquare, new Bishop(piece.Color)) ||
+            IsKingInCheckByPiece(kingSquare, new Rook(piece.Color)) ||
+            IsKingInCheckByPiece(kingSquare, new Queen(piece.Color)) ||
+            IsKingInCheckByPiece(kingSquare, new King(piece.Color)) ||
+            IsKingInCheckByPiece(kingSquare, new Pawn(piece.Color.Opposite())))
+        {
+            return false;
+        }
 
         return true;
+    }
+
+    private bool IsKingInCheckByPiece(Square testSquare, Piece.Piece testPiece)
+    {
+        List<Square> checkSquares = testPiece.GetLegalSquares(testSquare, this);
+
+        return checkSquares.Any(square => Pieces[square].GetType() == testPiece.GetType() && Pieces[square].Color != testPiece.Color);
     }
 }
