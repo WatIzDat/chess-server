@@ -9,15 +9,14 @@ public class Match
     {
     }
 
-    public Match(ApplicationUser initialUser)
+    public Match(ApplicationUser initialUser, string fen = Fen.InitialPosition)
     {
-        //ConnectedUsers = [initialUser];
         Connections =
         [
             new MatchConnection(initialUser, MatchPlayerType.WhitePlayer)
         ];
 
-        Board = Fen.CreateBoardFromFen(Fen.InitialPosition);
+        Board = Fen.CreateBoardFromFen(fen);
     }
     
     public Guid Id { get; init; } = Guid.NewGuid();

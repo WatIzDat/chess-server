@@ -107,7 +107,12 @@ while (true)
     }
     else
     {
-        HttpResponseMessage response = await client.PostAsync("http://localhost:5075/match", null);
+        Console.Write("FEN (leave empty for default position): ");
+        string fen = Console.ReadLine()!;
+        
+        HttpContent content = new StringContent(JsonSerializer.Serialize(fen), mediaType: new MediaTypeHeaderValue("application/json"));
+        
+        HttpResponseMessage response = await client.PostAsync("http://localhost:5075/match", content);
         
         response.EnsureSuccessStatusCode();
         

@@ -7,6 +7,7 @@ using ChessServer.Api.Extensions;
 using ChessServer.Api.Hubs;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -116,13 +117,13 @@ app.MapGet("/squares/{fen}/{square}", (string fen, string square) =>
 //     return Fen.CreateFenFromBoard(board);
 // });
 
-app.MapPost("/match", async (ClaimsPrincipal claims, ApplicationDbContext dbContext) =>
+app.MapPost("/match", async (ClaimsPrincipal claims, ApplicationDbContext dbContext, [FromBody] string fen) =>
 {
     string userId = claims.Claims.First(c => c.Type == ClaimTypes.NameIdentifier).Value;
 
     ApplicationUser user = (await dbContext.Users.FindAsync(userId))!;
 
-    Match match = new(user);
+    Match match = string.IsNullOrWhiteSpace(fen) ? new Match(user) : new Match(user, fen);
     
     dbContext.Matches.Add(match);
     await dbContext.SaveChangesAsync();
