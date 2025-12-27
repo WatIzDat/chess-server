@@ -43,8 +43,13 @@ public record Square
         return Rank + amount is < 0 or > 7 ? null : new Square(File, Rank + amount);
     }
 
-    public Square? Down(int amount = 1)
+    public Square? Down(int amount = 1, PlayerColor perspective = PlayerColor.White)
     {
+        if (perspective == PlayerColor.Black)
+        {
+            return Up(amount);
+        }
+        
         return Rank - amount is < 0 or > 7 ? null : new Square(File, Rank - amount);
     }
     

@@ -25,6 +25,8 @@ public class Pawn(PlayerColor color) : Piece(color)
         
         Square? leftCapture = upSquare.Left();
         Square? rightCapture = upSquare.Right();
+        
+        Console.WriteLine($"En passant square: {board.EnPassantTargetSquares[Color.Opposite()]}");
 
         if (leftCapture != null && (board.CanCaptureAtSquare(leftCapture, Color) || board.EnPassantTargetSquares[Color.Opposite()] == leftCapture))
         {
@@ -51,6 +53,26 @@ public class Pawn(PlayerColor color) : Piece(color)
             
             if (promotion != null)
                 pieces[move.ToSquare] = promotion;
+        }
+    }
+
+    public override void MakeMove(Board board, Move move)
+    {
+        if (move.ToSquare.File != move.FromSquare.File && !board.CanCaptureAtSquare(move.ToSquare, Color))
+        {
+            board.Pieces.Remove(move.ToSquare.Down(perspective: Color) ?? throw new ArgumentException("En passant invalid", nameof(move)));
+        }
+        
+        base.MakeMove(board, move);
+
+        if ((Color == PlayerColor.White && move.ToSquare.Rank == move.FromSquare.Rank + 2) ||
+            (Color == PlayerColor.Black && move.ToSquare.Rank == move.FromSquare.Rank - 2))
+        {
+            board.EnPassantTargetSquares[Color] = move.ToSquare.Down(perspective: Color);
+        }
+        else
+        {
+            board.EnPassantTargetSquares[Color] = null;
         }
     }
 }

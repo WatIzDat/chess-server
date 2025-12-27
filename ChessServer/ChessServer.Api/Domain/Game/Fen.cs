@@ -171,7 +171,7 @@ public static class Fen
 
         foreach ((Square square, Piece.Piece piece) in pieces)
         {
-            Console.WriteLine($"{square.File} {square.Rank}");
+            //Console.WriteLine($"{square.File} {square.Rank}");
             if (square.Rank != rank)
             {
                 if (file < 7 || rank - square.Rank > 1)
