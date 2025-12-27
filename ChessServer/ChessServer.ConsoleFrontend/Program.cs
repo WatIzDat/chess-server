@@ -1,8 +1,11 @@
 ﻿using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
+using ChessServer.ConsoleFrontend;
 using ChessServer.ConsoleFrontend.Models;
 using Microsoft.AspNetCore.SignalR.Client;
+
+Console.OutputEncoding = System.Text.Encoding.UTF8;
 
 JsonSerializerOptions jsonOptions = new()
 {
@@ -64,7 +67,7 @@ HubConnection gameHubConnection = new HubConnectionBuilder()
     .WithAutomaticReconnect()
     .Build();
 
-gameHubConnection.On<string>("ReceiveMove", board=> Console.WriteLine($"Received move: {board}"));
+gameHubConnection.On<string>("ReceiveMove", board=> Console.WriteLine(Fen.FenToDisplayBoard(board)));
 
 await gameHubConnection.StartAsync();
 
