@@ -49,6 +49,24 @@ public class King(PlayerColor color) : Piece(color)
     {
         base.MakeMove(board, move);
 
+        int backRank = Color == PlayerColor.White ? 0 : 7;
+
+        // Castling
+        if (move.FromSquare == new Square('e', backRank) &&
+            move.ToSquare == new Square('g', backRank))
+        {
+            board.Pieces.Remove(new Square('h', backRank));
+
+            board.Pieces[new Square('f', backRank)] = new Rook(Color);
+        }
+        else if (move.FromSquare == new Square('e', backRank) &&
+                 move.ToSquare == new Square('c', backRank))
+        {
+            board.Pieces.Remove(new Square('a', backRank));
+
+            board.Pieces[new Square('d', backRank)] = new Rook(Color);
+        }
+
         board.CastlingRights[Color].Kingside = false;
         board.CastlingRights[Color].Queenside = false;
     }
