@@ -2,12 +2,12 @@
 
 namespace ChessServer.Api.Domain.Game;
 
-public class Move(Square fromSquare, Square toSquare, Func<PlayerColor, Piece.Piece?> getPromotion)
+public class Move(Square fromSquare, Square toSquare, Func<PlayerColor, Piece.Piece?>? getPromotion = null)
 {
     public Square FromSquare { get; } = fromSquare;
     public Square ToSquare { get; } = toSquare;
     
-    public Func<PlayerColor, Piece.Piece?> GetPromotion { get; } = getPromotion;
+    public Func<PlayerColor, Piece.Piece?> GetPromotion { get; } = getPromotion ?? (_ => null);
 
     public static Move Create(string move)
     {

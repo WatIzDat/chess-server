@@ -75,9 +75,33 @@ public class Board
         return true;
     }
 
-    public void MakeMove(Move move)
+    public GameResult MakeMove(Move move)
     {
+        PlayerColor oppositeColor = Pieces[move.FromSquare].Color.Opposite();
+        
         Pieces[move.FromSquare].MakeMove(this, move);
+
+        var piecesCopy = Pieces.ToDictionary();
+        
+        foreach ((Square square, Piece.Piece piece) in piecesCopy)
+        {
+            if (piece.Color != oppositeColor)
+                continue;
+            
+            List<Square> legalSquares = piece.GetLegalSquares(square, this);
+
+            foreach (Square legalSquare in legalSquares)
+            {
+                if (!IsKingInCheckAfterMove(new Move(square, legalSquare)))
+                {
+                    return GameResult.None;
+                }
+            }
+        }
+        
+        Square kingSquare = Pieces.First(kvp => kvp.Value is King && kvp.Value.Color == oppositeColor).Key;
+
+        return IsKingInCheck(kingSquare, oppositeColor) ? GameResult.Checkmate : GameResult.Stalemate;
     }
 
     public bool IsKingInCheck(Square kingSquare, PlayerColor kingColor)

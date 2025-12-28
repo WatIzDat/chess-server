@@ -10,7 +10,7 @@ public class King(PlayerColor color) : Piece(color)
             board.CanOccupySquare(fromSquare.Right() ?? throw new Exception("Castling rights invalid")) &&
             board.CanOccupySquare(fromSquare.Right(2) ?? throw new Exception("Castling rights invalid")) &&
             !board.IsKingInCheck(fromSquare, Color) &&
-            !board.IsKingInCheckAfterMove(new Move(fromSquare, fromSquare.Right()!, _ => null)))
+            !board.IsKingInCheckAfterMove(new Move(fromSquare, fromSquare.Right()!)))
         {
             legalSquares.Add(fromSquare.Right(2)!);
         }
@@ -20,7 +20,7 @@ public class King(PlayerColor color) : Piece(color)
             board.CanOccupySquare(fromSquare.Left(2) ?? throw new Exception("Castling rights invalid")) &&
             board.CanOccupySquare(fromSquare.Left(3) ?? throw new Exception("Castling rights invalid")) &&
             !board.IsKingInCheck(fromSquare, Color) &&
-            !board.IsKingInCheckAfterMove(new Move(fromSquare, fromSquare.Left()!, _ => null)))
+            !board.IsKingInCheckAfterMove(new Move(fromSquare, fromSquare.Left()!)))
         {
             legalSquares.Add(fromSquare.Left(2)!);
         }

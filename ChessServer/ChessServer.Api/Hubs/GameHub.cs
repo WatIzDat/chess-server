@@ -30,7 +30,9 @@ public class GameHub(ApplicationDbContext dbContext) : Hub
         if (!match.Board.IsMoveLegal(newMove, connection.PlayerType == MatchPlayerType.WhitePlayer ? PlayerColor.White : PlayerColor.Black))
             return;
         
-        match.Board.MakeMove(newMove);
+        GameResult gameResult = match.Board.MakeMove(newMove);
+        
+        Console.WriteLine(gameResult);
         
         dbContext.Attach(match).Property(m => m.Board).IsModified = true;
         
@@ -38,7 +40,8 @@ public class GameHub(ApplicationDbContext dbContext) : Hub
         
         await Clients.Group(connection.MatchId.ToString())
             .SendAsync("ReceiveMove",
-                Fen.CreateFenFromBoard(match.Board));
+                Fen.CreateFenFromBoard(match.Board),
+                gameResult);
     }
 
     public async Task JoinMatch(Guid matchId)

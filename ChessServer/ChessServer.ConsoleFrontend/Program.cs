@@ -67,7 +67,11 @@ HubConnection gameHubConnection = new HubConnectionBuilder()
     .WithAutomaticReconnect()
     .Build();
 
-gameHubConnection.On<string>("ReceiveMove", board=> Console.WriteLine(Fen.FenToDisplayBoard(board)));
+gameHubConnection.On<string, int>("ReceiveMove", (board, result) =>
+{
+    Console.WriteLine(Fen.FenToDisplayBoard(board));
+    Console.WriteLine(result);
+});
 
 await gameHubConnection.StartAsync();
 
