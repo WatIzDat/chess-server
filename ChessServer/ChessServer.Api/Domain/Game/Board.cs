@@ -4,7 +4,7 @@ namespace ChessServer.Api.Domain.Game;
 
 public class Board
 {
-    public Dictionary<Square, Piece.Piece> Pieces { get; set; } = new();
+    public Dictionary<Square, Piece.Piece> Pieces { get; private set; } = new();
     
     public PlayerColor PlayerToMove { get; set; }
 
@@ -24,6 +24,45 @@ public class Board
 
     public Board()
     {
+    }
+
+    public string GetPositionKey()
+    {
+        string[] fen = Fen.CreateFenFromBoard(this).Split(' ');
+
+        string positionKey = string.Join(' ', fen[..3]);
+
+        string epTargetSquare = fen[3];
+
+        if (epTargetSquare != "-")
+        {
+            int epTargetFile = Square.CharFileToInt(epTargetSquare[0]);
+            int epTargetRank = (int)char.GetNumericValue(epTargetSquare[1]);
+
+            Square square = new(epTargetFile, epTargetRank, true);
+
+            PlayerColor epTargetColor = square.Rank == 2 ? PlayerColor.White : PlayerColor.Black;
+            
+            Square upSquare = square.Up(perspective: epTargetColor)
+                ?? throw new Exception("upSquare was somehow null");
+
+            Square? leftSquare = upSquare.Left();
+            Square? rightSquare = upSquare.Right();
+
+            if ((leftSquare != null &&
+                 Pieces.TryGetValue(leftSquare, out Piece.Piece? leftPiece) &&
+                 leftPiece is Pawn leftPawn &&
+                 leftPawn.Color == epTargetColor.Opposite()) ||
+                (rightSquare != null &&
+                 Pieces.TryGetValue(rightSquare, out Piece.Piece? rightPiece) &&
+                 rightPiece is Pawn rightPawn &&
+                 rightPawn.Color == epTargetColor.Opposite()))
+            {
+                positionKey += " " + epTargetSquare;
+            }
+        }
+
+        return positionKey;
     }
 
     public bool CanOccupySquare(Square square)

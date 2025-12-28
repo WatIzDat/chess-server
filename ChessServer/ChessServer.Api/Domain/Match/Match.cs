@@ -17,10 +17,13 @@ public class Match
         ];
 
         Board = Fen.CreateBoardFromFen(fen);
+
+        PositionKeyList = [Board.GetPositionKey()];
     }
     
     public Guid Id { get; init; } = Guid.NewGuid();
     //public List<ApplicationUser> ConnectedUsers { get; init; }
     public List<MatchConnection> Connections { get; } = [];
     public Board Board { get; init; }
+    public List<string> PositionKeyList { get; set; } = [];
 }

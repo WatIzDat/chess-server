@@ -34,7 +34,9 @@ public class GameHub(ApplicationDbContext dbContext) : Hub
         
         Console.WriteLine(gameResult);
         
-        dbContext.Attach(match).Property(m => m.Board).IsModified = true;
+        match.PositionKeyList.Add(match.Board.GetPositionKey());
+        
+        dbContext.Entry(match).State = EntityState.Modified;
         
         await dbContext.SaveChangesAsync();
         
