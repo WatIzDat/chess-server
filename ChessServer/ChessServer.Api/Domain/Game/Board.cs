@@ -119,6 +119,10 @@ public class Board
         PlayerColor oppositeColor = Pieces[move.FromSquare].Color.Opposite();
         
         Pieces[move.FromSquare].MakeMove(this, move);
+        
+        if (Pieces.Count == 2 || 
+            (Pieces.Count == 3 && (Pieces.Any(kvp => kvp.Value is Knight) || Pieces.Any(kvp => kvp.Value is Bishop))))
+            return GameResult.DrawByInsufficientMaterial;
 
         var piecesCopy = Pieces.ToDictionary();
         
