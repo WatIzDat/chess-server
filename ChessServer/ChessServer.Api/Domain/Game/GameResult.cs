@@ -4,5 +4,7 @@ public enum GameResult
 {
     None,
     Checkmate,
-    Stalemate
+    Stalemate,
+    DrawByRepetition,
+    DrawByFiftyMoveRule
 }

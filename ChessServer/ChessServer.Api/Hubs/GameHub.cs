@@ -33,8 +33,19 @@ public class GameHub(ApplicationDbContext dbContext) : Hub
         GameResult gameResult = match.Board.MakeMove(newMove);
         
         Console.WriteLine(gameResult);
+
+        string positionKey = match.Board.GetPositionKey();
         
-        match.PositionKeyList.Add(match.Board.GetPositionKey());
+        match.PositionKeyList.Add(positionKey);
+
+        if (match.PositionKeyList.FindAll(p => p == positionKey).Count >= 3)
+        {
+            gameResult = GameResult.DrawByRepetition;
+        }
+        else if (match.Board.HalfmoveClock >= 100 && gameResult != GameResult.Checkmate)
+        {
+            gameResult = GameResult.DrawByFiftyMoveRule;
+        }
         
         dbContext.Entry(match).State = EntityState.Modified;
         
