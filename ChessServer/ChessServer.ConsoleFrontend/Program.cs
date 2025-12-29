@@ -74,19 +74,8 @@ long serverTimeOffset = 0;
 bool isWhitePlayer;
 bool isWhiteToMove = true;
 
-gameHubConnection.On<string, int, double, long>("ReceiveMove", (board, result, timeRemaining, newServerTimestamp) =>
-{
-    Console.WriteLine(Fen.FenToDisplayBoard(board));
-    Console.WriteLine(result);
-    Console.WriteLine(timeRemaining);
-
-    isWhiteToMove = !isWhiteToMove;
-
-    serverTimestamp = newServerTimestamp;
-    
-    long clientReceiveTime = Stopwatch.GetTimestamp();
-    serverTimeOffset = serverTimestamp - clientReceiveTime;
-});
+double whiteTime = 30;
+double blackTime = 30;
 
 await gameHubConnection.StartAsync();
 
@@ -150,6 +139,8 @@ while (true)
         long clientReceiveTime = Stopwatch.GetTimestamp();
         serverTimeOffset = serverTimestamp - clientReceiveTime;
         
+        Console.WriteLine("Offset: " + serverTimeOffset);
+        
         matchId = Guid.Parse(stringMatchId);
         
         await gameHubConnection.InvokeAsync("JoinMatch", matchId);
@@ -158,10 +149,26 @@ while (true)
     break;
 }
 
-CancellationTokenSource cancellationTokenSource = new();
+gameHubConnection.On<string, int, double, long>("ReceiveMove", (board, result, timeRemaining, newServerTimestamp) =>
+{
+    Console.WriteLine(Fen.FenToDisplayBoard(board));
+    Console.WriteLine(result);
+    Console.WriteLine(timeRemaining);
 
-double whiteTimeRemaining = 30;
-double blackTimeRemaining = 30;
+    if (isWhitePlayer)
+        whiteTime = timeRemaining;
+    else
+        blackTime = timeRemaining;
+
+    isWhiteToMove = !isWhiteToMove;
+
+    serverTimestamp = newServerTimestamp;
+    
+    long clientReceiveTime = Stopwatch.GetTimestamp();
+    serverTimeOffset = serverTimestamp - clientReceiveTime;
+});
+
+CancellationTokenSource cancellationTokenSource = new();
 
 Task tickerTask = RunTicker(cancellationTokenSource.Token);
 
@@ -174,13 +181,16 @@ async Task RunTicker(CancellationToken cancellationToken)
 
         double elapsedTimeSeconds = (double)elapsedTime / Stopwatch.Frequency;
 
+        double whiteTimeRemaining = whiteTime;
+        double blackTimeRemaining = blackTime;
+
         if (isWhiteToMove)
             whiteTimeRemaining -= elapsedTimeSeconds;
         else
             blackTimeRemaining -= elapsedTimeSeconds;
         
-        Console.SetCursorPosition(0, 1);
-        Console.Write($"White: {whiteTimeRemaining}, Black: {blackTimeRemaining}");
+        Console.SetCursorPosition(0, Console.CursorTop);
+        Console.Write($"White: {whiteTimeRemaining:F}, Black: {blackTimeRemaining:F}");
 
         await Task.Delay(50, cancellationToken);
     }
