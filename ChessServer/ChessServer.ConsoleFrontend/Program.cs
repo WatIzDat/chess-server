@@ -1,4 +1,5 @@
-﻿using System.Net.Http.Headers;
+﻿using System.Diagnostics;
+using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
 using ChessServer.ConsoleFrontend;
@@ -67,11 +68,24 @@ HubConnection gameHubConnection = new HubConnectionBuilder()
     .WithAutomaticReconnect()
     .Build();
 
-gameHubConnection.On<string, int, double>("ReceiveMove", (board, result, timeRemaining) =>
+long serverTimestamp = 0;
+long serverTimeOffset = 0;
+
+bool isWhitePlayer;
+bool isWhiteToMove = true;
+
+gameHubConnection.On<string, int, double, long>("ReceiveMove", (board, result, timeRemaining, newServerTimestamp) =>
 {
     Console.WriteLine(Fen.FenToDisplayBoard(board));
     Console.WriteLine(result);
     Console.WriteLine(timeRemaining);
+
+    isWhiteToMove = !isWhiteToMove;
+
+    serverTimestamp = newServerTimestamp;
+    
+    long clientReceiveTime = Stopwatch.GetTimestamp();
+    serverTimeOffset = serverTimestamp - clientReceiveTime;
 });
 
 await gameHubConnection.StartAsync();
@@ -90,6 +104,8 @@ while (true)
 
     if (matchAction.Equals("join", StringComparison.InvariantCultureIgnoreCase))
     {
+        isWhitePlayer = false;
+        
         while (true)
         {
             Console.Write("Match id: ");
@@ -112,6 +128,8 @@ while (true)
     }
     else
     {
+        isWhitePlayer = true;
+        
         Console.Write("FEN (leave empty for default position): ");
         string fen = Console.ReadLine()!;
         
@@ -121,9 +139,16 @@ while (true)
         
         response.EnsureSuccessStatusCode();
         
-        string stringMatchId = (await response.Content.ReadAsStringAsync())[1..^1];
+        CreateMatchResponse createMatchResponse = await response.Content.ReadFromJsonAsync<CreateMatchResponse>() ?? throw new Exception("CreateMatch failed");
+        
+        string stringMatchId = createMatchResponse.Id;
         
         Console.WriteLine($"Match id: {stringMatchId}");
+        
+        serverTimestamp = createMatchResponse.ServerTimestamp;
+        
+        long clientReceiveTime = Stopwatch.GetTimestamp();
+        serverTimeOffset = serverTimestamp - clientReceiveTime;
         
         matchId = Guid.Parse(stringMatchId);
         
@@ -131,6 +156,34 @@ while (true)
     }
 
     break;
+}
+
+CancellationTokenSource cancellationTokenSource = new();
+
+double whiteTimeRemaining = 30;
+double blackTimeRemaining = 30;
+
+Task tickerTask = RunTicker(cancellationTokenSource.Token);
+
+async Task RunTicker(CancellationToken cancellationToken)
+{
+    while (!cancellationToken.IsCancellationRequested)
+    {
+        long estimatedServerNow = Stopwatch.GetTimestamp() + serverTimeOffset;
+        long elapsedTime = estimatedServerNow - serverTimestamp;
+
+        double elapsedTimeSeconds = (double)elapsedTime / Stopwatch.Frequency;
+
+        if (isWhiteToMove)
+            whiteTimeRemaining -= elapsedTimeSeconds;
+        else
+            blackTimeRemaining -= elapsedTimeSeconds;
+        
+        Console.SetCursorPosition(0, 1);
+        Console.Write($"White: {whiteTimeRemaining}, Black: {blackTimeRemaining}");
+
+        await Task.Delay(50, cancellationToken);
+    }
 }
 
 while (true)

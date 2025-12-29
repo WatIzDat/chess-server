@@ -55,7 +55,8 @@ public class GameHub(ApplicationDbContext dbContext) : Hub
                 .SendAsync("ReceiveMove",
                     Fen.CreateFenFromBoard(match.Board),
                     GameResult.Flag,
-                    timeRemainingSeconds);
+                    timeRemainingSeconds,
+                    now);
 
             return;
         }
@@ -87,7 +88,8 @@ public class GameHub(ApplicationDbContext dbContext) : Hub
             .SendAsync("ReceiveMove",
                 Fen.CreateFenFromBoard(match.Board),
                 gameResult,
-                timeRemainingSeconds);
+                timeRemainingSeconds,
+                Stopwatch.GetTimestamp());
     }
 
     public async Task JoinMatch(Guid matchId)

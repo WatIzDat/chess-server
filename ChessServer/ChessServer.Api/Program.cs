@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Security.Claims;
 using System.Web;
 using ChessServer.Api.Database;
@@ -128,7 +129,7 @@ app.MapPost("/match", async (ClaimsPrincipal claims, ApplicationDbContext dbCont
     dbContext.Matches.Add(match);
     await dbContext.SaveChangesAsync();
 
-    return match.Id;
+    return new { match.Id, ServerTimestamp = Stopwatch.GetTimestamp() };
 })
 .RequireAuthorization();
 
