@@ -7,5 +7,6 @@ public enum GameResult
     Stalemate,
     DrawByRepetition,
     DrawByFiftyMoveRule,
-    DrawByInsufficientMaterial
+    DrawByInsufficientMaterial,
+    Flag
 }

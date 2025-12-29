@@ -1,4 +1,5 @@
-﻿using ChessServer.Api.Database;
+﻿using System.Diagnostics;
+using ChessServer.Api.Database;
 using ChessServer.Api.Domain.Game;
 
 namespace ChessServer.Api.Domain.Match;
@@ -9,7 +10,7 @@ public class Match
     {
     }
 
-    public Match(ApplicationUser initialUser, string fen = Fen.InitialPosition)
+    public Match(ApplicationUser initialUser, double initialTimeSeconds, string fen = Fen.InitialPosition)
     {
         Connections =
         [
@@ -19,6 +20,11 @@ public class Match
         Board = Fen.CreateBoardFromFen(fen);
 
         PositionKeyList = [Board.GetPositionKey()];
+        
+        LastTurnStartTimestamp = Stopwatch.GetTimestamp();
+
+        WhiteTimeRemaining = (long)(initialTimeSeconds * Stopwatch.Frequency);
+        BlackTimeRemaining = (long)(initialTimeSeconds * Stopwatch.Frequency);
     }
     
     public Guid Id { get; init; } = Guid.NewGuid();
@@ -26,4 +32,7 @@ public class Match
     public List<MatchConnection> Connections { get; } = [];
     public Board Board { get; init; }
     public List<string> PositionKeyList { get; set; } = [];
+    public long LastTurnStartTimestamp { get; set; }
+    public long WhiteTimeRemaining { get; set; }
+    public long BlackTimeRemaining { get; set; }
 }

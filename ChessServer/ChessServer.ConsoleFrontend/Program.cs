@@ -67,10 +67,11 @@ HubConnection gameHubConnection = new HubConnectionBuilder()
     .WithAutomaticReconnect()
     .Build();
 
-gameHubConnection.On<string, int>("ReceiveMove", (board, result) =>
+gameHubConnection.On<string, int, double>("ReceiveMove", (board, result, timeRemaining) =>
 {
     Console.WriteLine(Fen.FenToDisplayBoard(board));
     Console.WriteLine(result);
+    Console.WriteLine(timeRemaining);
 });
 
 await gameHubConnection.StartAsync();

@@ -1,4 +1,5 @@
-﻿using ChessServer.Api.Database;
+﻿using System.Diagnostics;
+using ChessServer.Api.Database;
 using ChessServer.Api.Domain.Game;
 using ChessServer.Api.Domain.Match;
 using Microsoft.AspNetCore.Authorization;
@@ -18,18 +19,49 @@ public class GameHub(ApplicationDbContext dbContext) : Hub
 
         MatchConnection? connection = await dbContext.MatchConnections.Where(c =>
             c.MatchId == matchId && c.UserId == Context.UserIdentifier && c.IsActive).FirstOrDefaultAsync();
-        
+
         //List<MatchConnection> connections = await dbContext.MatchConnections.Where(connection => connection.IsActive && connection.UserId == Context.UserIdentifier).ToListAsync();
-        
+
         if (connection == null ||
             !connection.PlayerType.IsPlayer())
             return;
-        
+
         Match match = await dbContext.Matches.Where(m => m.Id == matchId).FirstAsync();
 
-        if (!match.Board.IsMoveLegal(newMove, connection.PlayerType == MatchPlayerType.WhitePlayer ? PlayerColor.White : PlayerColor.Black))
+        if (!match.Board.IsMoveLegal(newMove,
+                connection.PlayerType == MatchPlayerType.WhitePlayer ? PlayerColor.White : PlayerColor.Black))
             return;
-        
+
+        long now = Stopwatch.GetTimestamp();
+        long elapsedTime = now - match.LastTurnStartTimestamp;
+
+        if (match.Board.PlayerToMove == PlayerColor.White)
+        {
+            match.WhiteTimeRemaining -= elapsedTime;
+        }
+        else
+        {
+            match.BlackTimeRemaining -= elapsedTime;
+        }
+
+        double timeRemainingSeconds =
+            (double)(match.Board.PlayerToMove == PlayerColor.White
+                ? match.WhiteTimeRemaining
+                : match.BlackTimeRemaining) / Stopwatch.Frequency;
+
+        if (match.WhiteTimeRemaining <= 0 || match.BlackTimeRemaining <= 0)
+        {
+            await Clients.Group(connection.MatchId.ToString())
+                .SendAsync("ReceiveMove",
+                    Fen.CreateFenFromBoard(match.Board),
+                    GameResult.Flag,
+                    timeRemainingSeconds);
+
+            return;
+        }
+
+        match.LastTurnStartTimestamp = now;
+
         GameResult gameResult = match.Board.MakeMove(newMove);
         
         Console.WriteLine(gameResult);
@@ -54,7 +86,8 @@ public class GameHub(ApplicationDbContext dbContext) : Hub
         await Clients.Group(connection.MatchId.ToString())
             .SendAsync("ReceiveMove",
                 Fen.CreateFenFromBoard(match.Board),
-                gameResult);
+                gameResult,
+                timeRemainingSeconds);
     }
 
     public async Task JoinMatch(Guid matchId)

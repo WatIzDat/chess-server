@@ -123,7 +123,7 @@ app.MapPost("/match", async (ClaimsPrincipal claims, ApplicationDbContext dbCont
 
     ApplicationUser user = (await dbContext.Users.FindAsync(userId))!;
 
-    Match match = string.IsNullOrWhiteSpace(fen) ? new Match(user) : new Match(user, fen);
+    Match match = string.IsNullOrWhiteSpace(fen) ? new Match(user, 30) : new Match(user, 30, fen);
     
     dbContext.Matches.Add(match);
     await dbContext.SaveChangesAsync();
