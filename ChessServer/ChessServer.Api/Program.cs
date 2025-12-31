@@ -147,10 +147,12 @@ app.MapPatch("/match/{matchId:guid}", async (ClaimsPrincipal claims, Application
     }
 
     match.Connections.Add(new MatchConnection(user, MatchPlayerType.BlackPlayer));
+    
+    match.LastTurnStartTimestamp = Stopwatch.GetTimestamp();
 
     await dbContext.SaveChangesAsync();
 
-    return Results.Ok(match.Id);
+    return Results.Ok(new { match.Id, ServerTimestamp = Stopwatch.GetTimestamp() });
 })
 .RequireAuthorization();
 

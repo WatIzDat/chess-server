@@ -81,6 +81,25 @@ await gameHubConnection.StartAsync();
 
 Guid matchId;
 
+CancellationTokenSource cancellationTokenSource = new();
+
+gameHubConnection.On<int, long>("ReceiveJoin", (type, newServerTimestamp) =>
+{
+    Console.WriteLine("test");
+    
+    if (type == 1)
+    {
+        serverTimestamp = newServerTimestamp;
+        
+        long clientReceiveTime = Stopwatch.GetTimestamp();
+        serverTimeOffset = serverTimestamp - clientReceiveTime;
+        
+        Console.WriteLine(serverTimeOffset);
+        
+        _ = RunTicker(cancellationTokenSource.Token);
+    }
+});
+
 while (true)
 {
     Console.Write("Choose action (create/join) match: ");
@@ -109,6 +128,13 @@ while (true)
             HttpResponseMessage response = await client.PatchAsync("http://localhost:5075/match/" + matchId, null);
             
             response.EnsureSuccessStatusCode();
+            
+            // MatchResponse matchResponse = await response.Content.ReadFromJsonAsync<MatchResponse>() ?? throw new Exception("Join match failed");
+            
+            // serverTimestamp = matchResponse.ServerTimestamp;
+            //
+            // long clientReceiveTime = Stopwatch.GetTimestamp();
+            // serverTimeOffset = serverTimestamp - clientReceiveTime;
 
             await gameHubConnection.InvokeAsync("JoinMatch", matchId);
 
@@ -128,18 +154,18 @@ while (true)
         
         response.EnsureSuccessStatusCode();
         
-        CreateMatchResponse createMatchResponse = await response.Content.ReadFromJsonAsync<CreateMatchResponse>() ?? throw new Exception("CreateMatch failed");
+        MatchResponse matchResponse = await response.Content.ReadFromJsonAsync<MatchResponse>() ?? throw new Exception("Create match failed");
         
-        string stringMatchId = createMatchResponse.Id;
+        string stringMatchId = matchResponse.Id;
         
         Console.WriteLine($"Match id: {stringMatchId}");
         
-        serverTimestamp = createMatchResponse.ServerTimestamp;
+        // serverTimestamp = matchResponse.ServerTimestamp;
+        //
+        // long clientReceiveTime = Stopwatch.GetTimestamp();
+        // serverTimeOffset = serverTimestamp - clientReceiveTime;
         
-        long clientReceiveTime = Stopwatch.GetTimestamp();
-        serverTimeOffset = serverTimestamp - clientReceiveTime;
-        
-        Console.WriteLine("Offset: " + serverTimeOffset);
+        // Console.WriteLine("Offset: " + serverTimeOffset);
         
         matchId = Guid.Parse(stringMatchId);
         
@@ -155,7 +181,7 @@ gameHubConnection.On<string, int, double, long>("ReceiveMove", (board, result, t
     Console.WriteLine(result);
     Console.WriteLine(timeRemaining);
 
-    if (isWhitePlayer)
+    if (isWhiteToMove)
         whiteTime = timeRemaining;
     else
         blackTime = timeRemaining;
@@ -168,9 +194,6 @@ gameHubConnection.On<string, int, double, long>("ReceiveMove", (board, result, t
     serverTimeOffset = serverTimestamp - clientReceiveTime;
 });
 
-CancellationTokenSource cancellationTokenSource = new();
-
-Task tickerTask = RunTicker(cancellationTokenSource.Token);
 
 async Task RunTicker(CancellationToken cancellationToken)
 {

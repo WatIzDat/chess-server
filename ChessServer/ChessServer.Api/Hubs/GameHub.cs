@@ -94,7 +94,25 @@ public class GameHub(ApplicationDbContext dbContext) : Hub
 
     public async Task JoinMatch(Guid matchId)
     {
+        if (Context.UserIdentifier == null)
+        {
+            Console.WriteLine("UserIdentifier == null");
+            return;
+        }
+        
         await Groups.AddToGroupAsync(Context.ConnectionId, matchId.ToString());
+        
+        MatchConnection? connection = await dbContext.MatchConnections.Where(c => c.MatchId == matchId && c.UserId == Context.UserIdentifier && c.IsActive).FirstOrDefaultAsync();
+
+        if (connection == null)
+        {
+            Console.WriteLine("Connection is null");
+            return;
+        }
+        
+        //await Clients.Caller.SendAsync("ReceiveJoin", connection.PlayerType, Stopwatch.GetTimestamp());
+        
+        await Clients.Group(matchId.ToString()).SendAsync("ReceiveJoin", connection.PlayerType, Stopwatch.GetTimestamp());
     }
 
     public override async Task OnDisconnectedAsync(Exception? exception)

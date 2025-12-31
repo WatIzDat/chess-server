@@ -21,7 +21,7 @@ public class Match
 
         PositionKeyList = [Board.GetPositionKey()];
         
-        LastTurnStartTimestamp = Stopwatch.GetTimestamp();
+        //LastTurnStartTimestamp = Stopwatch.GetTimestamp();
 
         WhiteTimeRemaining = (long)(initialTimeSeconds * Stopwatch.Frequency);
         BlackTimeRemaining = (long)(initialTimeSeconds * Stopwatch.Frequency);
