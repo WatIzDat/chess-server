@@ -1,8 +1,10 @@
 ﻿using ChessServer.Api.Domain;
 using ChessServer.Api.Domain.Game;
 using ChessServer.Api.Domain.Match;
+using ChessServer.Api.Domain.Matchmaking;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace ChessServer.Api.Database;
 
@@ -15,6 +17,8 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     
     public DbSet<Match> Matches { get; set; }
     public DbSet<MatchConnection> MatchConnections { get; set; }
+    public DbSet<TimeControl> TimeControls { get; set; }
+    public DbSet<MatchmakingPool> MatchmakingPools { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -53,5 +57,27 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
         builder.Entity<MatchConnection>()
             .Property(e => e.IsActive)
             .HasDefaultValue(true);
+        
+        TimeSpanToTicksConverter timeSpanToTicksConverter = new();
+
+        builder.Entity<TimeControl>()
+            .Property(e => e.InitialTime)
+            .HasConversion(timeSpanToTicksConverter);
+        
+        builder.Entity<TimeControl>()
+            .Property(e => e.IncrementTime)
+            .HasConversion(timeSpanToTicksConverter);
+
+        builder.Entity<MatchmakingPool>()
+            .HasKey(e => e.TimeControlId);
+
+        builder.Entity<MatchmakingPool>()
+            .HasOne(e => e.TimeControl)
+            .WithMany()
+            .HasForeignKey(e => e.TimeControlId);
+
+        builder.Entity<MatchmakingPool>()
+            .HasMany(e => e.Users)
+            .WithMany();
     }
 }

@@ -4,8 +4,10 @@ using System.Web;
 using ChessServer.Api.Database;
 using ChessServer.Api.Domain.Game;
 using ChessServer.Api.Domain.Match;
+using ChessServer.Api.Domain.Matchmaking;
 using ChessServer.Api.Extensions;
 using ChessServer.Api.Hubs;
+using ChessServer.Api.Requests;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -155,6 +157,48 @@ app.MapPatch("/match/{matchId:guid}", async (ClaimsPrincipal claims, Application
     return Results.Ok(new { match.Id, ServerTimestamp = Stopwatch.GetTimestamp() });
 })
 .RequireAuthorization();
+
+app.MapPost("/queue", async (ClaimsPrincipal claims, ApplicationDbContext dbContext, QueueMatchmakingRequest request) =>
+{
+    TimeSpan initialTime = TimeSpan.FromSeconds(request.InitialTimeSeconds);
+    TimeSpan incrementTime = TimeSpan.FromSeconds(request.IncrementTimeSeconds);
+
+    if (initialTime.Hours > 99 || incrementTime.Hours > 99)
+        return Results.BadRequest("Game too long");
+
+    string? userId = claims.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+    
+    if (userId == null)
+        return Results.Unauthorized();
+
+    ApplicationUser? user = await dbContext.Users.FindAsync(userId);
+
+    if (user == null)
+        return Results.Unauthorized();
+
+    TimeControl? timeControl = await dbContext.TimeControls.FirstOrDefaultAsync(c =>
+        c.InitialTime == initialTime && c.IncrementTime == incrementTime && c.UseDelay == request.UseDelay);
+
+    if (timeControl == null)
+    {
+        TimeControl newTimeControl = new(initialTime, incrementTime, request.UseDelay);
+
+        dbContext.TimeControls.Add(newTimeControl);
+
+        dbContext.MatchmakingPools.Add(new MatchmakingPool { TimeControl = newTimeControl, Users = [user] });
+    }
+    else
+    {
+        MatchmakingPool matchmakingPool =
+            await dbContext.MatchmakingPools.FirstAsync(p => p.TimeControl == timeControl);
+
+        matchmakingPool.Users.Add(user);
+    }
+
+    await dbContext.SaveChangesAsync();
+
+    return Results.NoContent();
+});
 
 app.MapHub<GameHub>("/gameHub");
 

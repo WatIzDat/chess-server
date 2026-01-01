@@ -69,9 +69,8 @@ HubConnection gameHubConnection = new HubConnectionBuilder()
     .Build();
 
 long serverTimestamp = 0;
-long serverTimeOffset = 0;
+long serverTimeOffset;
 
-bool isWhitePlayer;
 bool isWhiteToMove = true;
 
 double whiteTime = 30;
@@ -112,8 +111,6 @@ while (true)
 
     if (matchAction.Equals("join", StringComparison.InvariantCultureIgnoreCase))
     {
-        isWhitePlayer = false;
-        
         while (true)
         {
             Console.Write("Match id: ");
@@ -143,8 +140,6 @@ while (true)
     }
     else
     {
-        isWhitePlayer = true;
-        
         Console.Write("FEN (leave empty for default position): ");
         string fen = Console.ReadLine()!;
         
