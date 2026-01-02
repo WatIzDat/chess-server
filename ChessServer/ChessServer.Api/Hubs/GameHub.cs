@@ -51,6 +51,10 @@ public class GameHub(ApplicationDbContext dbContext) : Hub
 
         if (match.WhiteTimeRemaining <= 0 || match.BlackTimeRemaining <= 0)
         {
+            await UpdatePlayerRatingsAsync(GameResult.Flag);
+
+            await dbContext.SaveChangesAsync();
+            
             await Clients.Group(connection.MatchId.ToString())
                 .SendAsync("ReceiveMove",
                     Fen.CreateFenFromBoard(match.Board),
@@ -79,6 +83,11 @@ public class GameHub(ApplicationDbContext dbContext) : Hub
         {
             gameResult = GameResult.DrawByFiftyMoveRule;
         }
+
+        if (gameResult != GameResult.None)
+        {
+            await UpdatePlayerRatingsAsync(gameResult);
+        }
         
         dbContext.Entry(match).State = EntityState.Modified;
         
@@ -90,6 +99,29 @@ public class GameHub(ApplicationDbContext dbContext) : Hub
                 gameResult,
                 timeRemainingSeconds,
                 Stopwatch.GetTimestamp());
+        
+        return;
+
+        async Task UpdatePlayerRatingsAsync(GameResult result)
+        {
+            ApplicationUser playerA = await dbContext.Users.FindAsync(Context.UserIdentifier) ?? throw new Exception("User was somehow null");
+            ApplicationUser playerB = (await dbContext.MatchConnections.Include(c => c.User).FirstAsync(c =>
+                c.MatchId == matchId && c.IsActive && c.UserId != Context.UserIdentifier && c.PlayerType ==
+                (connection.PlayerType == MatchPlayerType.WhitePlayer
+                    ? MatchPlayerType.BlackPlayer
+                    : MatchPlayerType.WhitePlayer))).User;
+
+            double playerAExpectedScore = 1 / (1 + Math.Pow(10, (playerB.Rating - playerA.Rating) / 400));
+            double playerAScore = result is GameResult.Checkmate or GameResult.Flag ? 1.0 : 0.5;
+            double playerARating = playerA.Rating + 32 * (playerAScore - playerAExpectedScore);
+            
+            double playerBExpectedScore = 1 / (1 + Math.Pow(10, (playerA.Rating - playerB.Rating) / 400));
+            double playerBScore = result is GameResult.Checkmate or GameResult.Flag ? 0.0 : 0.5;
+            double playerBRating = playerB.Rating + 32 * (playerBScore - playerBExpectedScore);
+
+            playerA.Rating = playerARating;
+            playerB.Rating = playerBRating;
+        }
     }
 
     public async Task JoinMatch(Guid matchId)
