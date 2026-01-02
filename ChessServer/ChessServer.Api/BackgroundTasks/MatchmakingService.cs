@@ -1,4 +1,6 @@
 ﻿using ChessServer.Api.Database;
+using ChessServer.Api.Domain.Match;
+using ChessServer.Api.Domain.Matchmaking;
 using Microsoft.EntityFrameworkCore;
 
 namespace ChessServer.Api.BackgroundTasks;
@@ -26,16 +28,16 @@ public class MatchmakingService(IServiceProvider serviceProvider) : BackgroundSe
         {
             Console.WriteLine(poolId);
 
-            List<ApplicationUser> users = (await dbContext.MatchmakingPools
+            MatchmakingPool pool = await dbContext.MatchmakingPools
                 .Include(p => p.Users)
-                .FirstAsync(p => p.TimeControlId == poolId, cancellationToken))
-                .Users;
+                .Include(p => p.TimeControl)
+                .FirstAsync(p => p.TimeControlId == poolId, cancellationToken);
 
             HashSet<ApplicationUser> matchedUsers = [];
 
-            foreach (ApplicationUser user in users)
+            foreach (ApplicationUser user in pool.Users.ToList())
             {
-                ApplicationUser? matchedUser = users
+                ApplicationUser? matchedUser = pool.Users
                     .Where(u =>
                         u != user &&
                         !matchedUsers.Contains(u) &&
@@ -49,6 +51,25 @@ public class MatchmakingService(IServiceProvider serviceProvider) : BackgroundSe
                 
                 matchedUsers.Add(user);
                 matchedUsers.Add(matchedUser);
+
+                Random random = new();
+                bool isFirstUserWhitePlayer = random.Next(0, 2) == 0;
+
+                Match match =
+                    new(
+                    [
+                        new MatchConnection(user,
+                            isFirstUserWhitePlayer ? MatchPlayerType.WhitePlayer : MatchPlayerType.BlackPlayer),
+                        new MatchConnection(matchedUser,
+                            isFirstUserWhitePlayer ? MatchPlayerType.BlackPlayer : MatchPlayerType.WhitePlayer)
+                    ], pool.TimeControl.InitialTime.TotalSeconds);
+                
+                dbContext.Matches.Add(match);
+                
+                pool.Users.Remove(user);
+                pool.Users.Remove(matchedUser);
+                
+                await dbContext.SaveChangesAsync(cancellationToken);
                 
                 Console.WriteLine($"Matched {user} with {matchedUser}");
             }

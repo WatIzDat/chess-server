@@ -11,11 +11,28 @@ public class Match
     }
 
     public Match(ApplicationUser initialUser, double initialTimeSeconds, string fen = Fen.InitialPosition)
+        : this([new MatchConnection(initialUser, MatchPlayerType.WhitePlayer)], initialTimeSeconds, fen)
     {
-        Connections =
-        [
-            new MatchConnection(initialUser, MatchPlayerType.WhitePlayer)
-        ];
+    }
+    // {
+    //     Connections =
+    //     [
+    //         new MatchConnection(initialUser, MatchPlayerType.WhitePlayer)
+    //     ];
+    //
+    //     Board = Fen.CreateBoardFromFen(fen);
+    //
+    //     PositionKeyList = [Board.GetPositionKey()];
+    //     
+    //     //LastTurnStartTimestamp = Stopwatch.GetTimestamp();
+    //
+    //     WhiteTimeRemaining = (long)(initialTimeSeconds * Stopwatch.Frequency);
+    //     BlackTimeRemaining = (long)(initialTimeSeconds * Stopwatch.Frequency);
+    // }
+
+    public Match(MatchConnection[] initialConnections, double initialTimeSeconds, string fen = Fen.InitialPosition)
+    {
+        Connections = initialConnections.ToList();
 
         Board = Fen.CreateBoardFromFen(fen);
 
