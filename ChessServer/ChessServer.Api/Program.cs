@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Security.Claims;
 using System.Web;
+using ChessServer.Api.BackgroundTasks;
 using ChessServer.Api.Database;
 using ChessServer.Api.Domain.Game;
 using ChessServer.Api.Domain.Match;
@@ -29,6 +30,8 @@ builder.Services.AddIdentityCore<ApplicationUser>()
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("Database")));
+
+builder.Services.AddHostedService<MatchmakingService>();
 
 var app = builder.Build();
 
