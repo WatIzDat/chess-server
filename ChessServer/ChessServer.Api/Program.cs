@@ -21,6 +21,14 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddOpenApi();
 builder.Services.AddSignalR();
 
+builder.Services.AddCors(options =>
+{
+    options.AddDefaultPolicy(policy =>
+    {
+        policy.WithOrigins("http://localhost:3000").AllowAnyHeader().AllowAnyMethod();
+    });
+});
+
 builder.Services.AddAuthorization();
 builder.Services.AddAuthentication().AddBearerToken(IdentityConstants.BearerScheme);
 
@@ -166,7 +174,7 @@ app.MapPost("/queue", async (ClaimsPrincipal claims, ApplicationDbContext dbCont
     TimeSpan initialTime = TimeSpan.FromSeconds(request.InitialTimeSeconds);
     TimeSpan incrementTime = TimeSpan.FromSeconds(request.IncrementTimeSeconds);
 
-    if (initialTime.Hours > 99 || incrementTime.Hours > 99)
+    if (initialTime.TotalHours > 99 || incrementTime.TotalHours > 99)
         return Results.BadRequest("Game too long");
 
     string? userId = claims.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
@@ -202,6 +210,8 @@ app.MapPost("/queue", async (ClaimsPrincipal claims, ApplicationDbContext dbCont
 
     return Results.NoContent();
 });
+
+app.UseCors();
 
 app.MapHub<GameHub>("/gameHub");
 

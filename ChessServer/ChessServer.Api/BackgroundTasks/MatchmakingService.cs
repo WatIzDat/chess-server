@@ -19,14 +19,18 @@ public class MatchmakingService(IServiceProvider serviceProvider) : BackgroundSe
 
             List<Guid> poolIds = await dbContext.MatchmakingPools.Select(p => p.TimeControlId).ToListAsync(stoppingToken);
 
-            IEnumerable<Task> tasks = poolIds.Select(id => RunMatchmakingPassAsync(id, dbContext, stoppingToken));
+            IEnumerable<Task> tasks = poolIds.Select(id => RunMatchmakingPassAsync(id, stoppingToken));
             
             await Task.WhenAll(tasks);
         }
 
-        async Task RunMatchmakingPassAsync(Guid poolId, ApplicationDbContext dbContext, CancellationToken cancellationToken)
+        async Task RunMatchmakingPassAsync(Guid poolId, CancellationToken cancellationToken)
         {
             Console.WriteLine(poolId);
+            
+            using IServiceScope scope = serviceProvider.CreateScope();
+            
+            ApplicationDbContext dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
 
             MatchmakingPool pool = await dbContext.MatchmakingPools
                 .Include(p => p.Users)
