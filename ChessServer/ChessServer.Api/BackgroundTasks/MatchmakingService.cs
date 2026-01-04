@@ -73,6 +73,17 @@ public class MatchmakingService(IServiceProvider serviceProvider) : BackgroundSe
                 pool.Users.Remove(user);
                 pool.Users.Remove(matchedUser);
                 
+                List<MatchmakingPool> queuedPools = await dbContext.MatchmakingPools
+                    .Include(p => p.Users)
+                    .Where(p => p.Users.Contains(user) || p.Users.Contains(matchedUser))
+                    .ToListAsync(cancellationToken);
+
+                foreach (MatchmakingPool p in queuedPools)
+                {
+                    p.Users.Remove(user);
+                    p.Users.Remove(matchedUser);
+                }
+                
                 await dbContext.SaveChangesAsync(cancellationToken);
                 
                 Console.WriteLine($"Matched {user} with {matchedUser}");
