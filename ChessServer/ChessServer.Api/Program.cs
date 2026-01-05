@@ -9,10 +9,12 @@ using ChessServer.Api.Domain.Matchmaking;
 using ChessServer.Api.Extensions;
 using ChessServer.Api.Hubs;
 using ChessServer.Api.Requests;
+using Microsoft.AspNetCore.Authentication.BearerToken;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Primitives;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -25,12 +27,30 @@ builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(policy =>
     {
-        policy.WithOrigins("http://localhost:3000").AllowAnyHeader().AllowAnyMethod();
+        policy.WithOrigins("https://localhost:3000").AllowAnyHeader().AllowAnyMethod().AllowCredentials();
     });
 });
 
 builder.Services.AddAuthorization();
-builder.Services.AddAuthentication().AddBearerToken(IdentityConstants.BearerScheme);
+builder.Services.AddAuthentication().AddBearerToken(IdentityConstants.BearerScheme, options =>
+{
+    options.Events = new BearerTokenEvents
+    {
+        OnMessageReceived = context =>
+        {
+            StringValues accessToken = context.Request.Query["access_token"];
+
+            PathString path = context.HttpContext.Request.Path;
+
+            if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/hubs"))
+            {
+                context.Token = accessToken;
+            }
+
+            return Task.CompletedTask;
+        }
+    };
+});
 
 builder.Services.AddIdentityCore<ApplicationUser>()
     .AddEntityFrameworkStores<ApplicationDbContext>()
@@ -43,6 +63,18 @@ builder.Services.AddHostedService<MatchmakingService>();
 
 var app = builder.Build();
 
+app.UseHttpsRedirection();
+
+app.UseRouting();
+
+app.UseCors();
+
+app.UseAuthentication();
+app.UseAuthorization();
+
+app.MapHub<GameHub>("/hubs/game");
+app.MapHub<MatchmakingHub>("/hubs/matchmaking");
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
@@ -51,7 +83,6 @@ if (app.Environment.IsDevelopment())
     app.ApplyMigrations();
 }
 
-app.UseHttpsRedirection();
 
 var summaries = new[]
 {
@@ -210,10 +241,6 @@ app.MapPost("/queue", async (ClaimsPrincipal claims, ApplicationDbContext dbCont
 
     return Results.NoContent();
 });
-
-app.UseCors();
-
-app.MapHub<GameHub>("/gameHub");
 
 app.MapIdentityApi<ApplicationUser>();
 

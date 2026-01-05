@@ -1,6 +1,8 @@
 ﻿using ChessServer.Api.Database;
 using ChessServer.Api.Domain.Match;
 using ChessServer.Api.Domain.Matchmaking;
+using ChessServer.Api.Hubs;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 
 namespace ChessServer.Api.BackgroundTasks;
@@ -29,6 +31,8 @@ public class MatchmakingService(IServiceProvider serviceProvider) : BackgroundSe
             Console.WriteLine(poolId);
             
             using IServiceScope scope = serviceProvider.CreateScope();
+            
+            IHubContext<MatchmakingHub> hubContext = serviceProvider.GetRequiredService<IHubContext<MatchmakingHub>>();
             
             ApplicationDbContext dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
 
@@ -85,6 +89,8 @@ public class MatchmakingService(IServiceProvider serviceProvider) : BackgroundSe
                 }
                 
                 await dbContext.SaveChangesAsync(cancellationToken);
+
+                await hubContext.Clients.Users(user.Id, matchedUser.Id).SendAsync("MatchFound", match.Id, cancellationToken);
                 
                 Console.WriteLine($"Matched {user} with {matchedUser}");
             }

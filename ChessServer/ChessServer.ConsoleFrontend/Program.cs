@@ -5,6 +5,7 @@ using System.Text.Json;
 using ChessServer.ConsoleFrontend;
 using ChessServer.ConsoleFrontend.Models;
 using Microsoft.AspNetCore.SignalR.Client;
+using Microsoft.Extensions.Logging;
 
 Console.OutputEncoding = System.Text.Encoding.UTF8;
 
@@ -64,6 +65,11 @@ HubConnection gameHubConnection = new HubConnectionBuilder()
     .WithUrl("http://localhost:5075/gameHub", options =>
     {
         options.AccessTokenProvider = GetAccessToken;
+    })
+    .ConfigureLogging(builder =>
+    {
+        builder.AddConsole();
+        builder.SetMinimumLevel(LogLevel.Debug);
     })
     .WithAutomaticReconnect()
     .Build();
