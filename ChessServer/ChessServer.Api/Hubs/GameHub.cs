@@ -54,13 +54,13 @@ public class GameHub(ApplicationDbContext dbContext) : Hub
             await UpdatePlayerRatingsAsync(GameResult.Flag);
 
             await dbContext.SaveChangesAsync();
-            
+
             await Clients.Group(connection.MatchId.ToString())
                 .SendAsync("ReceiveMove",
                     Fen.CreateFenFromBoard(match.Board),
                     GameResult.Flag,
                     timeRemainingSeconds,
-                    now);
+                    (now * 1000) / (double)Stopwatch.Frequency);
 
             return;
         }
@@ -98,7 +98,7 @@ public class GameHub(ApplicationDbContext dbContext) : Hub
                 Fen.CreateFenFromBoard(match.Board),
                 gameResult,
                 timeRemainingSeconds,
-                Stopwatch.GetTimestamp());
+                (Stopwatch.GetTimestamp() * 1000) / (double)Stopwatch.Frequency);
         
         return;
 
@@ -142,9 +142,24 @@ public class GameHub(ApplicationDbContext dbContext) : Hub
             return;
         }
         
+        int playerCount = await dbContext.MatchConnections.CountAsync(c =>
+            c.MatchId == matchId &&
+            c.IsActive &&
+            (c.PlayerType == MatchPlayerType.WhitePlayer || c.PlayerType == MatchPlayerType.BlackPlayer));
+        
+        bool allPlayersJoined = playerCount == 2;
+
+        Match match = (await dbContext.Matches.FindAsync(matchId))!;
+        
         //await Clients.Caller.SendAsync("ReceiveJoin", connection.PlayerType, Stopwatch.GetTimestamp());
         
-        await Clients.Group(matchId.ToString()).SendAsync("ReceiveJoin", connection.PlayerType, Stopwatch.GetTimestamp());
+        await Clients.Group(matchId.ToString())
+            .SendAsync("ReceiveJoin",
+                connection.PlayerType,
+                allPlayersJoined,
+                match.WhiteTimeRemaining,
+                match.BlackTimeRemaining,
+                (Stopwatch.GetTimestamp() * 1000) / (double)Stopwatch.Frequency);
     }
 
     public override async Task OnDisconnectedAsync(Exception? exception)
