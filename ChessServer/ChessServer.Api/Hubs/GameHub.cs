@@ -134,12 +134,24 @@ public class GameHub(ApplicationDbContext dbContext) : Hub
         
         await Groups.AddToGroupAsync(Context.ConnectionId, matchId.ToString());
         
-        MatchConnection? connection = await dbContext.MatchConnections.Where(c => c.MatchId == matchId && c.UserId == Context.UserIdentifier && c.IsActive).FirstOrDefaultAsync();
+        MatchConnection? connection = await dbContext.MatchConnections.Where(c => c.MatchId == matchId && c.UserId == Context.UserIdentifier).FirstOrDefaultAsync();
 
         if (connection == null)
         {
             Console.WriteLine("Connection is null");
-            return;
+
+            connection = new MatchConnection
+            {
+                MatchId = matchId,
+                UserId = Context.UserIdentifier,
+                PlayerType = MatchPlayerType.Spectator
+            };
+            
+            await dbContext.MatchConnections.AddAsync(connection);
+        }
+        else if (!connection.IsActive)
+        {
+            connection.IsActive = true;
         }
         
         int playerCount = await dbContext.MatchConnections.CountAsync(c =>
@@ -150,6 +162,8 @@ public class GameHub(ApplicationDbContext dbContext) : Hub
         bool allPlayersJoined = playerCount == 2;
 
         Match match = (await dbContext.Matches.FindAsync(matchId))!;
+
+        await dbContext.SaveChangesAsync();
         
         //await Clients.Caller.SendAsync("ReceiveJoin", connection.PlayerType, Stopwatch.GetTimestamp());
         
@@ -159,6 +173,7 @@ public class GameHub(ApplicationDbContext dbContext) : Hub
                 allPlayersJoined,
                 match.WhiteTimeRemaining,
                 match.BlackTimeRemaining,
+                Fen.CreateFenFromBoard(match.Board),
                 (Stopwatch.GetTimestamp() * 1000) / (double)Stopwatch.Frequency);
     }
 

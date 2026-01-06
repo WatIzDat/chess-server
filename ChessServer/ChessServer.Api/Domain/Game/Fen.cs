@@ -259,6 +259,9 @@ public static class Fen
 
         fen += " " + board.HalfmoveClock;
 
+        // TODO: Make this the actual move count (just doing 1 right now to make it a valid FEN)
+        fen += " 1";
+
         return fen;
     }
 
