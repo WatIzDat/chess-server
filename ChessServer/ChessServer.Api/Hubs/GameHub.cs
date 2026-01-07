@@ -44,10 +44,10 @@ public class GameHub(ApplicationDbContext dbContext) : Hub
             match.BlackTimeRemaining -= elapsedTime;
         }
 
-        double timeRemainingSeconds =
-            (double)(match.Board.PlayerToMove == PlayerColor.White
+        double timeRemainingMs =
+            ((double)(match.Board.PlayerToMove == PlayerColor.White
                 ? match.WhiteTimeRemaining
-                : match.BlackTimeRemaining) / Stopwatch.Frequency;
+                : match.BlackTimeRemaining) * 1000) / Stopwatch.Frequency;
 
         if (match.WhiteTimeRemaining <= 0 || match.BlackTimeRemaining <= 0)
         {
@@ -59,7 +59,7 @@ public class GameHub(ApplicationDbContext dbContext) : Hub
                 .SendAsync("ReceiveMove",
                     Fen.CreateFenFromBoard(match.Board),
                     GameResult.Flag,
-                    timeRemainingSeconds,
+                    timeRemainingMs,
                     (now * 1000) / (double)Stopwatch.Frequency);
 
             return;
@@ -97,7 +97,7 @@ public class GameHub(ApplicationDbContext dbContext) : Hub
             .SendAsync("ReceiveMove",
                 Fen.CreateFenFromBoard(match.Board),
                 gameResult,
-                timeRemainingSeconds,
+                timeRemainingMs,
                 (Stopwatch.GetTimestamp() * 1000) / (double)Stopwatch.Frequency);
         
         return;
@@ -171,8 +171,8 @@ public class GameHub(ApplicationDbContext dbContext) : Hub
             .SendAsync("ReceiveJoin",
                 connection.PlayerType,
                 allPlayersJoined,
-                match.WhiteTimeRemaining,
-                match.BlackTimeRemaining,
+                (match.WhiteTimeRemaining * 1000) / (double)Stopwatch.Frequency,
+                (match.BlackTimeRemaining * 1000) / (double)Stopwatch.Frequency,
                 Fen.CreateFenFromBoard(match.Board),
                 (Stopwatch.GetTimestamp() * 1000) / (double)Stopwatch.Frequency);
     }
