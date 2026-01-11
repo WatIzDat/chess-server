@@ -162,15 +162,20 @@ app.MapGet("/squares/{fen}/{square}", (string fen, string square) =>
 //     return Fen.CreateFenFromBoard(board);
 // });
 
-app.MapGet("/match/{matchId:guid}/type", async (ClaimsPrincipal claims, ApplicationDbContext dbContext, Guid matchId) =>
+app.MapGet("/match/{matchId:guid}", async (ClaimsPrincipal claims, ApplicationDbContext dbContext, Guid matchId) =>
 {
     string userId = claims.Claims.First(c => c.Type == ClaimTypes.NameIdentifier).Value;
 
     MatchConnection? matchConnection = await dbContext.MatchConnections
         .Where(c => c.MatchId == matchId && c.UserId == userId) 
         .FirstOrDefaultAsync();
+    
+    Match? match = await dbContext.Matches.FindAsync(matchId);
 
-    return matchConnection == null ? Results.NotFound() : Results.Ok(matchConnection.PlayerType);
+    return matchConnection == null || match == null ? Results.NotFound() : Results.Ok(new {
+        matchConnection.PlayerType,
+        match.Result
+    });
 })
 .RequireAuthorization();
 

@@ -48,6 +48,7 @@ public class Match
     //public List<ApplicationUser> ConnectedUsers { get; init; }
     public List<MatchConnection> Connections { get; } = [];
     public Board Board { get; init; }
+    public GameResult Result { get; set; } = GameResult.None;
     public List<string> PositionKeyList { get; set; } = [];
     public long LastTurnStartTimestamp { get; set; }
     public long WhiteTimeRemaining { get; set; }
