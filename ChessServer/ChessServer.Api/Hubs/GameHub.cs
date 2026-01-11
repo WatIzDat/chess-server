@@ -158,7 +158,7 @@ public class GameHub(ApplicationDbContext dbContext) : Hub
         
         int playerCount = await dbContext.MatchConnections.CountAsync(c =>
             c.MatchId == matchId &&
-            (c.IsActive || c == connection) &&
+            (c.IsActive || c.UserId == Context.UserIdentifier) &&
             (c.PlayerType == MatchPlayerType.WhitePlayer || c.PlayerType == MatchPlayerType.BlackPlayer));
         
         bool allPlayersJoined = playerCount == 2;
@@ -176,7 +176,7 @@ public class GameHub(ApplicationDbContext dbContext) : Hub
                 (match.WhiteTimeRemaining * 1000) / (double)Stopwatch.Frequency,
                 (match.BlackTimeRemaining * 1000) / (double)Stopwatch.Frequency,
                 Fen.CreateFenFromBoard(match.Board),
-                // match.Result,
+                match.Result,
                 (Stopwatch.GetTimestamp() * 1000) / (double)Stopwatch.Frequency);
     }
 
