@@ -27,7 +27,7 @@ builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(policy =>
     {
-        policy.WithOrigins("https://localhost:3000").AllowAnyHeader().AllowAnyMethod().AllowCredentials();
+        policy.WithOrigins("https://localhost:3000", "https://chess-frontend-rho.vercel.app/").AllowAnyHeader().AllowAnyMethod().AllowCredentials();
     });
 });
 
